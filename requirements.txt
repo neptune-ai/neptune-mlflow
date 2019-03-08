@@ -1,0 +1,4 @@
+neptune-client
+click>=7.0
+future>=0.17.1
+pandas
