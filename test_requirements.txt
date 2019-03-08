@@ -1,0 +1,10 @@
+astroid==1.6.1
+bunch==1.0.1
+mock==2.0.0
+psutil==5.5.0
+pylint==1.9.3
+pylintfileheader==0.0.2
+pytest==4.1.0
+pytest-cov==2.6.1
+pytest-xdist==1.25.0
+tox==3.6.1

@@ -1,0 +1,21 @@
+sudo: false
+language: python
+python:
+- '2.7'
+- '3.5'
+- '3.6'
+install:
+- make prepare
+- pip install tox-travis
+script:
+- make checkstyle_tests
+- make unit_tests
+deploy:
+  distributions: git_version sdist
+  provider: pypi
+  user: neptune-deployer
+  password:
+    secure: Ss31M/pvWgwy3Gjeg2/c/KJqw/Ma5ofmIRDg4BB5zgF73bVxLbdKl8tmBnn+sRQywHzoxMNsMVSVJveUxkHwAgpqGUbb7KEYyZUsmBzkISi5lCTcTWqr2LxUtKk3upaZns54RurHLeyIjXf2ttSBsBYbj0FDaQeD+C7uzCnKZCOYridu+0nD39CghdR1+yVQY/4M1viglASa9sQEwgEBeGqiBWoJNeWX1KOMpWkRnzgMSv2w1AY5Lmq+vWK7NBm7Xdk15kVofdAB/zQdtFtkyaxN9gaEhoXLPU50oxj+UQXwb7AyhFg4fxlUyzz1GpeYFPgHeJlIADrKAyQzzd4vhAJJO0Gv1z4hAjJ/tTFIK4TChdv4FCDi6UGinWbq6pZRIuz540hLV9VMdxeYKcUvGO14dHCtIQ0CD3NK9iqUmV07pAUlyiKWBgQbEISFUkZ63/kr0d8cm3JQfG+fxxg6GAIqCFKfD5Gmy/c1qZNf9Oy0IjEuK8ywRbEPo3t3aiJf2u5E3LFSNjWuqZWpRTIBoFtaq7jkecpDWz6j6FKKM/zy8CJvOfbmFQGu4el3Z5RWDdXjT1nB49waGvbItFiFOR0cOT7gDSdsbOvOFExuefJ8m7uOQB9oAqo4e06yNxLXpQSFBBnHLzoBb8/VfA2PXNAeazpls3U8uKJsjP9LAys=
+  on:
+    tags: true
+  skip_existing: true
