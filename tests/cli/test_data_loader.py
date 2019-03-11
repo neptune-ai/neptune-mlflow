@@ -28,11 +28,13 @@ class TestDataLodaer(unittest.TestCase):
         # given
         exp = MagicMock()
         exp.name = 'exp_name'
+
+        # and
         run_info = MagicMock()
         run_info.name = None
         run_info.run_uuid = 'run_uuid'
 
-        # then
+        # expect
         # pylint: disable=protected-access
         self.assertEqual(DataLoader._get_run_qualified_name(exp, run_info), "exp_name/run_uuid")
 
@@ -40,11 +42,15 @@ class TestDataLodaer(unittest.TestCase):
         # given
         exp = MagicMock()
         exp.experiment_id = 'exp_id'
+
+        # and
         run_info = MagicMock()
         run_info.run_uuid = 'run_uuid'
+
+        # and
         metric_key = 'metric_key'
 
-        # then
+        # expect
         # pylint: disable=protected-access
         self.assertEqual(
             DataLoader._get_metric_file(exp, run_info, metric_key),
@@ -54,11 +60,13 @@ class TestDataLodaer(unittest.TestCase):
         # given
         exp = MagicMock()
         exp.name = 'EXPeriMENT-NaMe'
+
+        # and
         run = MagicMock()
         run.info = MagicMock()
         run.info.name = 'RuN-NAme'
 
-        # then
+        # expect
         # pylint: disable=protected-access
         self.assertEqual(
             DataLoader._get_tags(exp, run),
@@ -67,17 +75,25 @@ class TestDataLodaer(unittest.TestCase):
     def test_get_properties(self):
         # given
         Tag = namedtuple('Tag', 'key, value')
+
+        # and
         exp = MagicMock()
         exp.experiment_id = 123
         exp.name = 'EXPeriMENT-NaMe'
+
+        # and
         run = MagicMock()
+
+        # and
         run.info = MagicMock()
         run.info.run_uuid = str(uuid.uuid4())
         run.info.name = 'Cool run name'
+
+        # and
         run.data = MagicMock()
         run.data.tags = [Tag(key='key1', value='value1'), Tag(key='key2', value='value2')]
 
-        # then
+        # expect
         # pylint: disable=protected-access
         self.assertEqual(
             DataLoader._get_properties(exp, run),
@@ -98,7 +114,7 @@ class TestDataLodaer(unittest.TestCase):
         run.data = MagicMock()
         run.data.params = [Param(key='key1', value='value1'), Param(key='key2', value='value2')]
 
-        # then
+        # expect
         # pylint: disable=protected-access
         self.assertEqual(
             DataLoader._get_params(run),
