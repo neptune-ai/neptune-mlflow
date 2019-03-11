@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import unittest
+import random
 
 from click.testing import CliRunner
 
@@ -23,20 +24,16 @@ from cli import main
 class TestCLI(unittest.TestCase):
     runner = CliRunner()
 
-    def test_cli(self):
-        result = self.runner.invoke(main.main)
-        self.assertEqual(result.exit_code, 0)
-        self.assertIsNone(result.exception)
-        self.assertEqual(result.output.strip(), 'Hello, world.')
+    def test_path_not_exist(self):
+        path = '/tmp/{}'.format(random.randint(10000, 1000000))
+        result = self.runner.invoke(main.sync_mlflow_data, [path])
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(result.output.strip(), "ERROR: Directory `{}` doesn't exist".format(path))
 
-    def test_cli_with_option(self):
-        result = self.runner.invoke(main.main, ['--as-cowboy'])
-        self.assertIsNone(result.exception)
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output.strip(), 'Howdy, world.')
-
-    def test_cli_with_arg(self):
-        result = self.runner.invoke(main.main, ['Neptune'])
-        self.assertEqual(result.exit_code, 0)
-        self.assertIsNone(result.exception)
-        self.assertEqual(result.output.strip(), 'Hello, Neptune.')
+    def test_path_is_not_dir(self):
+        path = '/tmp/{}'.format(random.randint(10000, 1000000))
+        with open(path, 'a') as f:
+            f.write("text")
+        result = self.runner.invoke(main.sync_mlflow_data, [path])
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(result.output.strip(), "ERROR: `{}` is not a directory".format(path))

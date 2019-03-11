@@ -14,12 +14,49 @@
 # limitations under the License.
 #
 
+import os
+import sys
 import click
 
+from neptune import Session
 
-@click.command()
-@click.option('--as-cowboy', '-c', is_flag=True, help='Greet as a cowboy.')
-@click.argument('name', default='world', required=False)
-def main(name, as_cowboy):
-    greet = 'Howdy' if as_cowboy else 'Hello'
-    click.echo('{0}, {1}.'.format(greet, name))
+from cli.data_loader import DataLoader
+
+
+@click.group()
+def main():
+    pass
+
+
+@main.group('sync')
+def sync():
+    pass
+
+
+@sync.command('mlflow')
+@click.argument('path', required=False)
+@click.option('--api-token', '-a', help='Neptune Authorization Token')
+@click.option('--project', '-p', help='Project name')
+def sync_mlflow_data(path, api_token, project):
+    if path is None:
+        path = "."
+    if project is None:
+        project = os.getenv('NEPTUNE_PROJECT')
+
+    if not os.path.exists(path):
+        click.echo("ERROR: Directory `{}` doesn't exist".format(path), err=True)
+        sys.exit(1)
+
+    if not os.path.isdir(path):
+        click.echo("ERROR: `{}` is not a directory".format(path), err=True)
+        sys.exit(1)
+
+    session = Session(api_token)
+    project = session.get_project(project)
+
+    loader = DataLoader(project, path)
+    loader.run()
+
+
+if __name__ == '__main__':
+    main()
