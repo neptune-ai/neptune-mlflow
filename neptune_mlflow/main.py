@@ -20,7 +20,7 @@ import click
 
 from neptune import Session
 
-from cli.data_loader import DataLoader
+from neptune_mlflow.data_loader import DataLoader
 
 
 @click.group()
@@ -28,12 +28,7 @@ def main():
     pass
 
 
-@main.group('sync')
-def sync():
-    pass
-
-
-@sync.command('mlflow')
+@main.command('sync')
 @click.argument('path', required=False)
 @click.option('--api-token', '-a', help='Neptune Authorization Token')
 @click.option('--project', '-p', help='Project name')

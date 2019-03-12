@@ -43,12 +43,12 @@ def main():
             author_email='contact@neptune.ml',
             description='Neptune MLFlow',
             long_description=__doc__,
-            packages=find_packages(include=['cli*']),
+            packages=find_packages(include=['neptune_mlflow*']),
             platforms='any',
             install_requires=requirements,
             entry_points={
                 'console_scripts': [
-                    'neptune = cli.main:main',
+                    'neptune-mlflow = neptune_mlflow.main:main',
                 ],
             },
             cmdclass={
