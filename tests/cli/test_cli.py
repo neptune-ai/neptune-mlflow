@@ -18,7 +18,7 @@ import random
 
 from click.testing import CliRunner
 
-from cli import main
+from neptune_mlflow import main
 
 
 class TestCLI(unittest.TestCase):

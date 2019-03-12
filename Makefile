@@ -10,7 +10,7 @@ build:
 tests: checkstyle_tests unit_tests
 
 checkstyle_tests:
-	python -m pylint -j 0 -f parseable cli tests
+	python -m pylint -j 0 -f parseable neptune_mlflow tests
 
 unit_tests:
 	tox

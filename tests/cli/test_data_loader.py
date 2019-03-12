@@ -19,7 +19,7 @@ import uuid
 from collections import namedtuple
 from mock import MagicMock
 
-from cli.data_loader import DataLoader
+from neptune_mlflow.data_loader import DataLoader
 
 
 class TestDataLodaer(unittest.TestCase):
