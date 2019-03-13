@@ -23,7 +23,7 @@ import neptune
 from neptune_mlflow.data_loader import DataLoader
 
 
-def sync(path, api_token, project):
+def sync(path, project):
     if path is None:
         path = "."
 
@@ -35,7 +35,7 @@ def sync(path, api_token, project):
         click.echo("ERROR: `{}` is not a directory".format(path), err=True)
         sys.exit(1)
 
-    project = neptune.init(api_token=api_token, project_qualified_name=project)
+    project = neptune.init(project_qualified_name=project)
 
     loader = DataLoader(project, path)
     loader.run()
