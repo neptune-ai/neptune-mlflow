@@ -43,13 +43,11 @@ def main():
             author_email='contact@neptune.ml',
             description='Neptune MLFlow',
             long_description=__doc__,
-            packages=find_packages(include=['neptune_mlflow*']),
+            packages=find_packages(),
             platforms='any',
             install_requires=requirements,
             entry_points={
-                'console_scripts': [
-                    'neptune-mlflow = neptune_mlflow.main:main',
-                ],
+                'neptune.plugins': "mlflow = neptune_mlflow_plugin:sync"
             },
             cmdclass={
                 'git_version': git_version.GitVersion,

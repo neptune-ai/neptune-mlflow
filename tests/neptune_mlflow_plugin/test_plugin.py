@@ -18,15 +18,15 @@ import random
 
 from click.testing import CliRunner
 
-from neptune_mlflow import main
+from neptune_mlflow_plugin import sync
 
 
-class TestCLI(unittest.TestCase):
+class TestPlugin(unittest.TestCase):
     runner = CliRunner()
 
     def test_path_not_exist(self):
         path = '/tmp/{}'.format(random.randint(10000, 1000000))
-        result = self.runner.invoke(main.sync_mlflow_data, [path])
+        result = self.runner.invoke(sync, [path])
         self.assertEqual(result.exit_code, 1)
         self.assertEqual(result.output.strip(), "ERROR: Directory `{}` doesn't exist".format(path))
 
@@ -34,6 +34,6 @@ class TestCLI(unittest.TestCase):
         path = '/tmp/{}'.format(random.randint(10000, 1000000))
         with open(path, 'a') as f:
             f.write("text")
-        result = self.runner.invoke(main.sync_mlflow_data, [path])
+        result = self.runner.invoke(sync, [path])
         self.assertEqual(result.exit_code, 1)
         self.assertEqual(result.output.strip(), "ERROR: `{}` is not a directory".format(path))
