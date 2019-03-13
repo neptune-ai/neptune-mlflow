@@ -14,44 +14,14 @@
 # limitations under the License.
 #
 
-import os
-import sys
 import click
 
-from neptune import Session
 
-from neptune_mlflow.data_loader import DataLoader
-
-
-@click.group()
-def main():
-    pass
-
-
-@main.command('sync')
+@click.command('mlflow')
 @click.argument('path', required=False)
 @click.option('--api-token', '-a', help='Neptune Authorization Token')
 @click.option('--project', '-p', help='Project name')
-def sync_mlflow_data(path, api_token, project):
-    if path is None:
-        path = "."
-    if project is None:
-        project = os.getenv('NEPTUNE_PROJECT')
-
-    if not os.path.exists(path):
-        click.echo("ERROR: Directory `{}` doesn't exist".format(path), err=True)
-        sys.exit(1)
-
-    if not os.path.isdir(path):
-        click.echo("ERROR: `{}` is not a directory".format(path), err=True)
-        sys.exit(1)
-
-    session = Session(api_token)
-    project = session.get_project(project)
-
-    loader = DataLoader(project, path)
-    loader.run()
-
-
-if __name__ == '__main__':
-    main()
+def sync(path, api_token, project):
+    # We do not want to import anything if process was executed for autocompletion purposes.
+    from neptune_mlflow.sync import sync as run_sync
+    return run_sync(path=path, api_token=api_token, project=project)

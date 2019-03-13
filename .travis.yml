@@ -8,8 +8,7 @@ install:
 - make prepare
 - pip install tox-travis
 script:
-- make checkstyle_tests
-- make unit_tests
+- make tests
 deploy:
   distributions: git_version sdist
   provider: pypi
