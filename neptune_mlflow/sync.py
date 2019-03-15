@@ -35,6 +35,10 @@ def sync(path, project):
         click.echo("ERROR: `{}` is not a directory".format(path), err=True)
         sys.exit(1)
 
+    if not os.path.exists(os.path.join(path, "mlruns")):
+        click.echo("ERROR: No 'mlruns' directory in {}".format(path), err=True)
+        sys.exit(1)
+
     project = neptune.init(project_qualified_name=project)
 
     loader = DataLoader(project, path)
