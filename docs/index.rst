@@ -1,4 +1,4 @@
-neptune-mlflow: MLflow integration with Neptune
+neptune-mlflow: Neptune integration with MLflow
 ===========================================
  
 This library integrates `MLflow`_ with `Neptune`_ to let you get the best of both worlds.
