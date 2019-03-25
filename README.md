@@ -12,9 +12,13 @@ All you need to do is go to your `mlflow` project and run:
 neptune mlflow --project USER_NAME/PROJECT_NAME
 ```
 
-and you get [all this](https://ui.neptune.ml/jakub-czakon/mlflow-integration/experiments):
+and you [have your experiments organized]](https://ui.neptune.ml/jakub-czakon/mlflow-integration/experiments):
 
 ![image](https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/84068b5ff66719923006f798c21181cab6ec71df/mlflow_p1.png)
+
+and easily sharebale with the world:
+
+![image](https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/2b3989499b90a93e75208d9f9df5fa537b82b7fd/mlflow_artifact.png)
 
 # Documentation
 See [neptune-mlflow documentation site](https://neptune-mlflow.readthedocs.io) for more info.
