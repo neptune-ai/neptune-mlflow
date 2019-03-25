@@ -1,2 +1,4 @@
 .. toctree::
-   Simple experiment comparison <simple_compare_experiments>
+   Experiment comparison <compare_experiments>
+   Share model weights <share_model_weights>
+

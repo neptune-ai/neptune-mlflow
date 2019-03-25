@@ -1,43 +1,41 @@
 neptune-mlflow: MLflow integration with Neptune
 ===========================================
-
-This library is a collection of helpers and extensions that make working
-with `Neptune website`_ more effective and better. It is build on top of neptune-cli
-and neptune-lib and gives you option to do things like:
- * interactive visualizations of experiment runs or hyperparameters
- * running hyper parameter sweeps in scikit-optimize, hyperopt or any other tool you like
- * monitor training of the lightGBM models
- * much more
  
-.. figure:: https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/d7c844854a9c31c7fea317e41ee77ec16c3bb7eb/contrib_hyper22.png
+This library integrates `MLflow`_ with `Neptune`_ to let you get the best of both worlds.
+Enjoy tracking and reproducibility of `MLflow`_ with organizion and collaboration of `Neptune`_.
+
+With `neptune-mlflow` you can have your `MLflow`_ experiment runs hosted in a beatutiful knowledge repo that lets you invite and manage project contributors. 
+ 
+With one simple command:
+
+    neptune mlflow --project USER_NAME/PROJECT_NAME
+    
+Organize your mlflow experiments: 
+
+.. figure:: https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/84068b5ff66719923006f798c21181cab6ec71df/mlflow_p1.png
    :alt: image
    
    
-Get Started
------------------------
+and share you work with others.
 
-Register to Neptune.
+.. figure:: https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/2b3989499b90a93e75208d9f9df5fa537b82b7fd/mlflow_artifact.png
+   :alt: image
+   
 
-Create a project.
+.. toctree::
+   :maxdepth: 1
+   :caption: Get Started
 
-Set NEPTUNE_API_TOKEN.
-
-
-Install neptune-contrib via pip:
-
-    $ pip install neptune-mlflow 
-    
-    
-Sync your mlflow project:
-
-    $ neptune mlflow --project USER_NAME/PROJECT_NAME
-
-
+   neptune_app
+   library
+   
+   
 .. toctree::
    :maxdepth: 1
    :caption: Examples
 
    examples/examples_index
+
 
 .. toctree::
    :maxdepth: 1
@@ -46,7 +44,7 @@ Sync your mlflow project:
    data_loader <user_guide/data_loader>
    sync <user_guide/sync>
    
-
+   
 Bug Reports and Questions
 -----------------------
 
@@ -75,7 +73,8 @@ Indices and tables
 .. _GitHub: https://github.com/neptune-ml/neptune-mlflow
 .. _Git Issues: https://github.com/neptune-ml/neptune-mlflow/issues
 .. _Git Feature Request: https://github.com/neptune-ml/neptune-mlflow/issues
-.. _Neptune website: https://neptune.ml/
+.. _MLflow: https://mlflow.org/
+.. _Neptune: http://bit.ly/2YnX5Vs
 .. _Neptune community forum: https://community.neptune.ml/
 .. _Github projects: https://github.com/neptune-ml/neptune-mlflow/projects
 .. _Neptune Slack: https://neptune-community.slack.com

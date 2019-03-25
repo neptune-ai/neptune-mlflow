@@ -36,6 +36,12 @@ To do that, click on the `Get API Token` button on the top left.
 
 ![image](https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/e3776e605fea1fd5377c3ec748ba87b71cd8ef12/get_api_token.png)
 
+## Set NEPTUNE_API_TOKEN environment variable
+Go to your console and run:
+
+```
+export NEPTUNE_API_TOKEN='your_long_api_token'
+```
 
 ## Create your first project
 Click on `Projects` and the `New project`. Choose a name for it and whether you want it public or private.
