@@ -2,19 +2,27 @@
 [![Build Status](https://travis-ci.org/neptune-ml/neptune-mlflow.svg?branch=master)](https://travis-ci.org/neptune-ml/neptune-mlflow)
 
 # Overview
-neptune-mflow integrates mlflow with Neptune to let you get the best of both worlds.
-Enjoy tracking and reproducibility of mlflow with organizion and collaboration of Neptune.
-With neptune-mlflow you can have your mlflow experiment runs hosted in a beatutiful knowledge repo that lets you invite and manage project contributors. 
+`neptune-mflow` integrates `mlflow` with `Neptune` to let you get the best of both worlds.
+Enjoy tracking and reproducibility of `mlflow` with organizion and collaboration of `Neptune`.
+With `neptune-mlflow` you can have your `mlflow` experiment runs hosted in a beatutiful knowledge repo that lets you invite and manage project contributors. 
 
-![image]()
+All you need to do is go to your `mlflow` project and run:
+
+```
+neptune mlflow --project USER_NAME/PROJECT_NAME
+```
+
+and you get [all this](https://ui.neptune.ml/jakub-czakon/mlflow-integration/experiments):
+
+![image](https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/84068b5ff66719923006f798c21181cab6ec71df/mlflow_p1.png)
 
 # Documentation
-See [neptune-mlflow documentation site](https://neptune-mlflow.readthedocs.io)
+See [neptune-mlflow documentation site](https://neptune-mlflow.readthedocs.io) for more info.
 
 # Get started
 
 ## Register
-Go to [neptune.ml]() and sign up.
+Go to [neptune.ml](http://bit.ly/2YnX5Vs) and sign up.
 
 It is completely free for individuals and non-organizations, and you can invite others to join your team!
 
@@ -45,7 +53,7 @@ neptune mlflow --project USER_NAME/PROJECT_NAME
 ## Explore and Share
 You can now explore and organize your experiments in Neptune:
 
-![image]()
+![image](https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/84068b5ff66719923006f798c21181cab6ec71df/mlflow_p1.png)
 
 And share it with anyone by sending a link to your project, experiment or chart if it is public
 or invite people to your project if you want to keep it private!
