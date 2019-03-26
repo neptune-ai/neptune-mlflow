@@ -55,7 +55,7 @@ class DataLoader(object):
 
     def _create_neptune_experiment(self, experiment, run):
         with self._project.create_experiment(
-            name="mlflow/{}".format(self._get_run_qualified_name(experiment, run.info)),
+            name=self._get_name_for_experiment(experiment),
             params=self._get_params(run),
             properties=self._get_properties(experiment, run),
             tags=self._get_tags(experiment, run),
@@ -104,7 +104,7 @@ class DataLoader(object):
 
     @staticmethod
     def _get_tags(experiment, run):
-        tags = [experiment.name.lower()]
+        tags = [experiment.name.lower(), 'mlflow']
         if run.info.name:
             tags.append(run.info.name.lower())
         return tags
@@ -114,7 +114,11 @@ class DataLoader(object):
         return "mlruns/{}/{}/metrics/{}".format(experiment.experiment_id, run_info.run_uuid, metric_key)
 
     @staticmethod
+    def _get_name_for_experiment(experiment):
+        return experiment.name or "experiment-{}".format(experiment.experiment_id)
+
+    @staticmethod
     def _get_run_qualified_name(experiment, run_info):
         run_name = run_info.name or run_info.run_uuid
-        exp_name = experiment.name or "experiment-{}".format(experiment.experiment_id)
+        exp_name = DataLoader._get_name_for_experiment(experiment)
         return "{}/{}".format(exp_name, run_name)

@@ -69,8 +69,8 @@ class TestDataLodaer(unittest.TestCase):
         # expect
         # pylint: disable=protected-access
         self.assertEqual(
-            DataLoader._get_tags(exp, run),
-            ['experiment-name', 'run-name'])
+            set(DataLoader._get_tags(exp, run)),
+            {'mlflow', 'experiment-name', 'run-name'})
 
     def test_get_properties(self):
         # given
