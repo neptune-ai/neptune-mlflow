@@ -71,23 +71,23 @@ class DataLoader(object):
             with path_utils.Path(os.path.dirname(run.info.artifact_uri)):
                 neptune_exp.send_artifact(os.path.basename(run.info.artifact_uri))
 
-            for metric in run.data.metrics:
-                self._create_metric(neptune_exp, experiment, run, metric)
+            for metric_key in run.data.metrics.keys():
+                self._create_metric(neptune_exp, experiment, run, metric_key)
 
             return neptune_exp.id
 
     @staticmethod
-    def _create_metric(neptune_exp, experiment, run, metric):
-        with open(DataLoader._get_metric_file(experiment, run.info, metric.key)) as f:
+    def _create_metric(neptune_exp, experiment, run, metric_key):
+        with open(DataLoader._get_metric_file(experiment, run.info, metric_key)) as f:
             for idx, line in enumerate(f, start=1):
                 value = float(line.split()[1])
-                neptune_exp.send_metric(metric.key, idx, value)
+                neptune_exp.send_metric(metric_key, idx, value)
 
     @staticmethod
     def _get_params(run):
         params = {}
-        for param in run.data.params:
-            params[param.key] = param.value
+        for key, value in run.data.params.items():
+            params[key] = value
         return params
 
     @staticmethod
@@ -96,17 +96,17 @@ class DataLoader(object):
             DataLoader.MLFLOW_EXPERIMENT_ID_PROPERTY: str(experiment.experiment_id),
             DataLoader.MLFLOW_EXPERIMENT_NAME_PROPERTY: experiment.name,
             DataLoader.MLFLOW_RUN_ID_PROPERTY: run.info.run_uuid,
-            DataLoader.MLFLOW_RUN_NAME_PROPERTY: run.info.name
+            DataLoader.MLFLOW_RUN_NAME_PROPERTY: DataLoader._get_mlflow_run_name(run) or ''
         }
-        for tag in run.data.tags:
-            properties[tag.key] = tag.value
+        for key, value in run.data.tags.items():
+            properties[key] = value
         return properties
 
     @staticmethod
     def _get_tags(experiment, run):
         tags = [experiment.name.lower(), 'mlflow']
-        if run.info.name:
-            tags.append(run.info.name.lower())
+        if DataLoader._get_mlflow_run_name(run):
+            tags.append(DataLoader._get_mlflow_run_name(run).lower())
         return tags
 
     @staticmethod
@@ -119,6 +119,9 @@ class DataLoader(object):
 
     @staticmethod
     def _get_run_qualified_name(experiment, run_info):
-        run_name = run_info.name or run_info.run_uuid
         exp_name = DataLoader._get_name_for_experiment(experiment)
-        return "{}/{}".format(exp_name, run_name)
+        return "{}/{}".format(exp_name, run_info.run_id)
+
+    @staticmethod
+    def _get_mlflow_run_name(run):
+        return run.data.tags.get('mlflow.runName', None)
