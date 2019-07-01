@@ -16,7 +16,6 @@
 import unittest
 import uuid
 
-from collections import namedtuple
 from mock import MagicMock
 
 from neptune_mlflow.data_loader import DataLoader
@@ -32,7 +31,7 @@ class TestDataLodaer(unittest.TestCase):
         # and
         run_info = MagicMock()
         run_info.name = None
-        run_info.run_uuid = 'run_uuid'
+        run_info.run_id = 'run_uuid'
 
         # expect
         # pylint: disable=protected-access
@@ -64,19 +63,16 @@ class TestDataLodaer(unittest.TestCase):
         # and
         run = MagicMock()
         run.info = MagicMock()
-        run.info.name = 'RuN-NAme'
+        run.data.tags = {}
 
         # expect
         # pylint: disable=protected-access
         self.assertEqual(
             set(DataLoader._get_tags(exp, run)),
-            {'mlflow', 'experiment-name', 'run-name'})
+            {'mlflow', 'experiment-name'})
 
     def test_get_properties(self):
         # given
-        Tag = namedtuple('Tag', 'key, value')
-
-        # and
         exp = MagicMock()
         exp.experiment_id = 123
         exp.name = 'EXPeriMENT-NaMe'
@@ -87,11 +83,13 @@ class TestDataLodaer(unittest.TestCase):
         # and
         run.info = MagicMock()
         run.info.run_uuid = str(uuid.uuid4())
-        run.info.name = 'Cool run name'
 
         # and
         run.data = MagicMock()
-        run.data.tags = [Tag(key='key1', value='value1'), Tag(key='key2', value='value2')]
+        run.data.tags = {
+            'key1': 'value1',
+            'key2': 'value2'
+        }
 
         # expect
         # pylint: disable=protected-access
@@ -101,7 +99,7 @@ class TestDataLodaer(unittest.TestCase):
                 'mlflow/experiment/id': str(exp.experiment_id),
                 'mlflow/experiment/name': exp.name,
                 'mlflow/run/uuid': run.info.run_uuid,
-                'mlflow/run/name': run.info.name,
+                'mlflow/run/name': '',
                 'key1': 'value1',
                 'key2': 'value2'
             }
@@ -109,10 +107,12 @@ class TestDataLodaer(unittest.TestCase):
 
     def test_get_params(self):
         # given
-        Param = namedtuple('Param', 'key, value')
         run = MagicMock()
         run.data = MagicMock()
-        run.data.params = [Param(key='key1', value='value1'), Param(key='key2', value='value2')]
+        run.data.params = {
+            'key1': 'value1',
+            'key2': 'value2'
+        }
 
         # expect
         # pylint: disable=protected-access
