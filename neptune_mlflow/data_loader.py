@@ -67,9 +67,14 @@ class DataLoader(object):
             run_monitoring_thread=False,
             handle_uncaught_exceptions=True
         ) as neptune_exp:
-
-            with path_utils.Path(os.path.dirname(run.info.artifact_uri)):
-                neptune_exp.send_artifact(os.path.basename(run.info.artifact_uri))
+            if run.info.artifact_uri.startswith('file:/'):
+                artifacts_path = run.info.artifact_uri[6:]
+                with path_utils.Path(artifacts_path):
+                    for artifact in os.listdir(artifacts_path):
+                        neptune_exp.send_artifact(artifact)
+            else:
+                click.echo('WARNING: Remote artifacts are not supported and won\'t be uploaded (artifact_uri: {}).'
+                           .format(run.info.artifact_uri))
 
             for metric_key in run.data.metrics.keys():
                 self._create_metric(neptune_exp, experiment, run, metric_key)
