@@ -50,9 +50,7 @@ Bug Reports and Questions
 
 neptune-mlflow is an Apache Licence 2.0 project and the source code is available on `GitHub`_. If you
 find yourself in any trouble drop an isse on `Git Issues`_, fire a feature request on
-`Git Feature Request`_ or ask us on the `Neptune community forum`_ or `Neptune Slack`_.
-
-You can join our slack by clicking on the `Neptune Slack Join`_.
+`Git Feature Request`_ or ask us on the `Neptune community forum`_ or `Neptune community spectrum`_.
 
 
 Contribute
@@ -60,7 +58,7 @@ Contribute
 
 We keep an updated list of open issues/feature ideas on github project page `Github projects`_.
 If you feel like taking a shot at one of those do go for it!
-In case of any trouble please talk to us on the `Neptune Slack`_.
+In case of any trouble please talk to us on the `Neptune community spectrum`_.
 
 
 Indices and tables
@@ -77,5 +75,4 @@ Indices and tables
 .. _Neptune: http://bit.ly/2YnX5Vs
 .. _Neptune community forum: https://community.neptune.ml/
 .. _Github projects: https://github.com/neptune-ml/neptune-mlflow/projects
-.. _Neptune Slack: https://neptune-community.slack.com
-.. _Neptune Slack Join: https://join.slack.com/t/neptune-community/shared_invite/enQtNTI4Mjg3ODk2MjQwLWE5YjI0YThiODViNDY4MDBlNmRmZTkwNTE3YzNiMjQ5MGM2ZTFhNzhjN2YzMTIwNDM3NjQyZThmMDk1Y2Q1ZjY
+.. _Neptune community spectrum: https://spectrum.chat/neptune-community?tab=posts
