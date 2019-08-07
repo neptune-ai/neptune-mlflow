@@ -1,13 +1,13 @@
 neptune-mlflow: Neptune integration with MLflow
-===========================================
- 
-.. image:: ../_static/images/mlflow_neptuneml.png
-   :target: ../_static/images/mlflow_neptuneml.png
-   :alt: mlflow neptune.ml integration
+======================================================
    
 This library integrates `MLflow`_ with `Neptune`_ to let you get the best of both worlds.
 Enjoy tracking and reproducibility of `MLflow`_ with organizion and collaboration of `Neptune`_.
 
+.. image:: ../_static/images/mlflow_neptuneml.png
+   :target: ../_static/images/mlflow_neptuneml.png
+   :alt: mlflow neptune.ml integration
+   
 With `neptune-mlflow` you can have your `MLflow`_ experiment runs hosted in a beatutiful knowledge repo that lets you invite and manage project contributors. 
  
 With one simple command:
