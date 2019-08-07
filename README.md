@@ -1,6 +1,8 @@
 # neptune-mlflow
 [![Build Status](https://travis-ci.org/neptune-ml/neptune-mlflow.svg?branch=master)](https://travis-ci.org/neptune-ml/neptune-mlflow)
 
+![mlflow neptune.ml integration](docs/_static/images/mlflow_neptuneml.png)
+
 # Overview
 `neptune-mflow` integrates `mlflow` with `Neptune` to let you get the best of both worlds.
 Enjoy tracking and reproducibility of `mlflow` with organizion and collaboration of `Neptune`.
