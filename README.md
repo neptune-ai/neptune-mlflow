@@ -1,7 +1,7 @@
 # neptune-mlflow
 [![Build Status](https://travis-ci.org/neptune-ml/neptune-mlflow.svg?branch=master)](https://travis-ci.org/neptune-ml/neptune-mlflow)
 
-![mlflow neptune.ml integration](docs/_static/images/mlflow_neptuneml.png)
+![mlflow neptune.ml integration](docs/_static/mlflow_neptuneml.png)
 
 # Overview
 `neptune-mflow` integrates `mlflow` with `Neptune` to let you get the best of both worlds.
@@ -24,7 +24,7 @@ and easily [shareable](https://ui.neptune.ml/jakub-czakon/mlflow-integration/e/M
 ![image](https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/2b3989499b90a93e75208d9f9df5fa537b82b7fd/mlflow_artifact.png)
 
 # Documentation
-See [neptune-mlflow documentation site](https://neptune-mlflow.readthedocs.io) for more info.
+See [neptune-mlflow docs](https://docs.neptune.ml/integrations/mlflow.html) for more info.
 
 # Get started
 
@@ -77,16 +77,15 @@ or invite people to your project if you want to keep it private!
 If you get stuck, don't worry we are here to help.
 The best order of communication is:
 
- * [neptune-mlflow readthedocs](https://neptune-mlflow.readthedocs.io)
- * [github issues](https://github.com/neptune-ml/neptune-mlflow/issues)
- * [neptune community forum](https://community.neptune.ml/)
- * [neptune community spectrum](https://spectrum.chat/neptune-community?tab=posts)
- 
+ * [neptune community spectrum](https://spectrum.chat/neptune-community)
+ * [neptune-mlflow docs](https://docs.neptune.ml/integrations/mlflow.html)
+ * [github issues](https://github.com/neptune-ml/neptune-mlflow/issues) 
+
 # Contributing
 If you see something that you don't like you are more than welcome to contribute!
 There are many options:
-  
-  * Participate in discussions on [neptune community forum](https://community.neptune.ml/) or [neptune community spectrum](https://spectrum.chat/neptune-community?tab=posts)
+
+  * Participate in discussions on [neptune community spectrum](https://spectrum.chat/neptune-community)
   * Submit a feature request or a bug here, on Github
   * Submit a pull request that deals with an open feature-request or bug
   * Spread a word about neptune-contrib in your community
