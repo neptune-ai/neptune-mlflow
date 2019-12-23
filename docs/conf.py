@@ -23,7 +23,7 @@ autodoc_mock_imports = []
 # -- Project information -----------------------------------------------------
 
 project = 'neptune-mlflow'
-copyright = '2019, Neptune Dev Team'
+copyright = '2020, Neptune Dev Team'
 author = 'Neptune Dev Team'
 
 # The short X.Y version
