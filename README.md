@@ -29,7 +29,7 @@ See [neptune-mlflow docs](https://docs.neptune.ml/integrations/mlflow.html) for 
 # Get started
 
 ## Register
-Go to [neptune.ml](http://bit.ly/2YnX5Vs) and sign up.
+Go to [neptune.ml](https://neptune.ml/?utm_source=github&utm_medium=repository&utm_campaign=integration-mlflow&utm_content=homepage) and sign up.
 
 It is completely free for individuals and non-organizations, and you can invite others to join your team!
 
