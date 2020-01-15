@@ -79,7 +79,7 @@ The best order of communication is:
 
  * [neptune community spectrum](https://spectrum.chat/neptune-community)
  * [neptune-mlflow docs](https://docs.neptune.ai/integrations/mlflow.html)
- * [github issues](https://github.com/neptune-ai/neptune-mlflow/issues) 
+ * [github issues](https://github.com/neptune-ml/neptune-mlflow/issues) 
 
 # Contributing
 If you see something that you don't like you are more than welcome to contribute!
