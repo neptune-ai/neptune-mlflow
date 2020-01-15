@@ -1,2 +1,2 @@
-Neptune MLflow documentation has moved `here <https://docs.neptune.ml/integrations/mlflow.html>`_.
+Neptune MLflow documentation has moved `here <https://docs.neptune.ai/integrations/mlflow.html>`_.
 =======================================================================================================

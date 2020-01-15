@@ -1,13 +1,13 @@
 # neptune-mlflow
 [![Build Status](https://travis-ci.org/neptune-ml/neptune-mlflow.svg?branch=master)](https://travis-ci.org/neptune-ml/neptune-mlflow)
 
-![mlflow neptune.ml integration](docs/_static/mlflow_neptuneml.png)
+![mlflow neptune.ai integration](docs/_static/mlflow_neptuneml.png)
 
 # Overview
 `neptune-mflow` integrates `mlflow` with `Neptune` to let you get the best of both worlds.
-Enjoy tracking and reproducibility of `mlflow` with organizion and collaboration of `Neptune`.
+Enjoy tracking and reproducibility of `mlflow` with organization and collaboration of `Neptune`.
 
-With `neptune-mlflow` you can have your `mlflow` experiment runs hosted in a beatutiful knowledge repo that lets you invite and manage project contributors. 
+With `neptune-mlflow` you can have your `mlflow` experiment runs hosted in a beautiful knowledge repo that lets you invite and manage project contributors. 
 
 All you need to do is go to your `mlflow` project and run:
 
@@ -15,16 +15,16 @@ All you need to do is go to your `mlflow` project and run:
 neptune mlflow --project USER_NAME/PROJECT_NAME
 ```
 
-and you have your [experiments](https://ui.neptune.ml/jakub-czakon/mlflow-integration/experiments) organized:
+and you have your [experiments](https://ui.neptune.ai/jakub-czakon/mlflow-integration/experiments) organized:
 
 ![image](https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/84068b5ff66719923006f798c21181cab6ec71df/mlflow_p1.png)
 
-and easily [shareable](https://ui.neptune.ml/jakub-czakon/mlflow-integration/e/MLFLOW-10/output?path=artifacts%2F) with the world:
+and easily [shareable](https://ui.neptune.ai/jakub-czakon/mlflow-integration/e/MLFLOW-10/output?path=artifacts%2F) with the world:
 
 ![image](https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/2b3989499b90a93e75208d9f9df5fa537b82b7fd/mlflow_artifact.png)
 
 # Documentation
-See [neptune-mlflow docs](https://docs.neptune.ml/integrations/mlflow.html) for more info.
+See [neptune-mlflow docs](https://docs.neptune.ai/integrations/mlflow.html) for more info.
 
 # Get started
 
@@ -78,7 +78,7 @@ If you get stuck, don't worry we are here to help.
 The best order of communication is:
 
  * [neptune community spectrum](https://spectrum.chat/neptune-community)
- * [neptune-mlflow docs](https://docs.neptune.ml/integrations/mlflow.html)
+ * [neptune-mlflow docs](https://docs.neptune.ai/integrations/mlflow.html)
  * [github issues](https://github.com/neptune-ml/neptune-mlflow/issues) 
 
 # Contributing

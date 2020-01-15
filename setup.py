@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019, Neptune Labs Sp. z o.o.
+# Copyright (c) 2020, Neptune Labs Sp. z o.o.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ def main():
             version=version(),
             url='https://github.com/neptune-ml/neptune-mlflow',
             license='Apache License 2.0',
-            author='neptune.ml',
-            author_email='contact@neptune.ml',
+            author='neptune.ai',
+            author_email='contact@neptune.ai',
             description='Neptune MLFlow',
             long_description=__doc__,
             packages=find_packages(),
