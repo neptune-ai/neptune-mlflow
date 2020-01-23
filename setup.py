@@ -37,7 +37,7 @@ def main():
         setup(
             name='neptune-mlflow',
             version=version(),
-            url='https://github.com/neptune-ml/neptune-mlflow',
+            url='https://github.com/neptune-ai/neptune-mlflow',
             license='Apache License 2.0',
             author='neptune.ai',
             author_email='contact@neptune.ai',

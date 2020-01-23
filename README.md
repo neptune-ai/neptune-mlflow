@@ -1,5 +1,5 @@
 # neptune-mlflow
-[![Build Status](https://travis-ci.org/neptune-ml/neptune-mlflow.svg?branch=master)](https://travis-ci.org/neptune-ml/neptune-mlflow)
+[![Build Status](https://travis-ci.org/neptune-ai/neptune-mlflow.svg?branch=master)](https://travis-ci.org/neptune-ai/neptune-mlflow)
 
 ![mlflow neptune.ai integration](docs/_static/mlflow_neptuneml.png)
 
@@ -79,7 +79,7 @@ The best order of communication is:
 
  * [neptune community spectrum](https://spectrum.chat/neptune-community)
  * [neptune-mlflow docs](https://docs.neptune.ai/integrations/mlflow.html)
- * [github issues](https://github.com/neptune-ml/neptune-mlflow/issues) 
+ * [github issues](https://github.com/neptune-ai/neptune-mlflow/issues) 
 
 # Contributing
 If you see something that you don't like you are more than welcome to contribute!
