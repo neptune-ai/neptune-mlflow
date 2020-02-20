@@ -16,6 +16,7 @@
 from __future__ import print_function
 
 import os
+import re
 import click
 import mlflow
 import path as path_utils
@@ -38,7 +39,7 @@ class DataLoader(object):
 
             for experiment in experiments:
                 run_infos = mlflow_client.list_run_infos(experiment_id=experiment.experiment_id)
-                existing_experiments = self._project.get_experiments(tag=experiment.name.lower())
+                existing_experiments = self._project.get_experiments(tag=DataLoader._to_proper_tag(experiment.name))
                 existing_run_uuids = set([
                     str(e.get_properties().get(DataLoader.MLFLOW_RUN_ID_PROPERTY)) for e in existing_experiments
                 ])
@@ -109,10 +110,14 @@ class DataLoader(object):
 
     @staticmethod
     def _get_tags(experiment, run):
-        tags = [experiment.name.lower(), 'mlflow']
+        tags = [DataLoader._to_proper_tag(experiment.name), 'mlflow']
         if DataLoader._get_mlflow_run_name(run):
-            tags.append(DataLoader._get_mlflow_run_name(run).lower())
+            tags.append(DataLoader._to_proper_tag(DataLoader._get_mlflow_run_name(run)))
         return tags
+
+    @staticmethod
+    def _to_proper_tag(string):
+        return re.sub("[^a-zA-Z0-9\\-_]", "_", string).lower()
 
     @staticmethod
     def _get_metric_file(experiment, run_info, metric_key):
