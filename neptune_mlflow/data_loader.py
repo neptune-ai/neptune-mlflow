@@ -19,6 +19,8 @@ import os
 import re
 import click
 import mlflow
+from urllib.parse import urlparse
+from urllib.request import url2pathname
 import path as path_utils
 
 class DataLoader(object):
@@ -69,7 +71,7 @@ class DataLoader(object):
             handle_uncaught_exceptions=True
         ) as neptune_exp:
             if run.info.artifact_uri.startswith('file:/'):
-                artifacts_path = run.info.artifact_uri[6:]
+                artifacts_path = url2pathname(urlparse(run.info.artifact_uri).path)
                 with path_utils.Path(artifacts_path):
                     for artifact in os.listdir(artifacts_path):
                         neptune_exp.send_artifact(artifact)
