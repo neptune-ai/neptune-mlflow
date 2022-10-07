@@ -16,63 +16,64 @@
 
 import os
 
-from setuptools import find_packages, setup
+from setuptools import (
+    find_packages,
+    setup,
+)
 
 import git_version
 
 
 def version():
     try:
-        with open('VERSION') as f:
+        with open("VERSION") as f:
             return f.readline().strip()
     except IOError:
-        return '0.0.0'
+        return "0.0.0"
 
 
 def main():
     root_dir = os.path.dirname(__file__)
 
-    with open(os.path.join(root_dir, 'requirements.txt')) as f:
+    with open(os.path.join(root_dir, "requirements.txt")) as f:
         requirements = [r.strip() for r in f]
         setup(
-            name='neptune-mlflow',
+            name="neptune-mlflow",
             version=version(),
-            url='https://github.com/neptune-ai/neptune-mlflow',
-            license='Apache License 2.0',
-            author='neptune.ai',
-            author_email='contact@neptune.ai',
-            description='Neptune MLFlow',
+            url="https://github.com/neptune-ai/neptune-mlflow",
+            license="Apache License 2.0",
+            author="neptune.ai",
+            author_email="contact@neptune.ai",
+            description="Neptune MLFlow",
             long_description=__doc__,
             packages=find_packages(),
-            platforms='any',
+            platforms="any",
             install_requires=requirements,
-            entry_points={
-                'neptune.plugins': "mlflow = neptune_mlflow_plugin:sync"
-            },
+            entry_points={"neptune.plugins": "mlflow = neptune_mlflow_plugin:sync"},
             cmdclass={
-                'git_version': git_version.GitVersion,
+                "git_version": git_version.GitVersion,
             },
             classifiers=[
                 # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
                 # 'Development Status :: 1 - Planning',
                 # 'Development Status :: 2 - Pre-Alpha',
                 # 'Development Status :: 3 - Alpha',
-                'Development Status :: 4 - Beta',
+                "Development Status :: 4 - Beta",
                 # 'Development Status :: 5 - Production/Stable',
                 # 'Development Status :: 6 - Mature',
                 # 'Development Status :: 7 - Inactive',
-                'Environment :: Console',
-                'Intended Audience :: Developers',
-                'License :: OSI Approved :: Apache Software License',
-                'Operating System :: POSIX',
-                'Operating System :: MacOS',
-                'Operating System :: Unix',
-                'Operating System :: Microsoft :: Windows',
-                'Programming Language :: Python',
-                'Programming Language :: Python :: 2',
-                'Programming Language :: Python :: 3',
-                'Topic :: Software Development :: Libraries :: Python Modules',
-            ]
+                "Environment :: Console",
+                "Intended Audience :: Developers",
+                "License :: OSI Approved :: Apache Software License",
+                "Operating System :: POSIX",
+                "Operating System :: MacOS",
+                "Operating System :: Unix",
+                "Operating System :: Microsoft :: Windows",
+                "Programming Language :: Python",
+                "Programming Language :: Python :: 2",
+                "Programming Language :: Python :: 3",
+                "Topic :: Software Development :: Libraries :: Python Modules",
+            ],
         )
 
 

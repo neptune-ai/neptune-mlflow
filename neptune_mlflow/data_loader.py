@@ -17,11 +17,13 @@ from __future__ import print_function
 
 import os
 import re
-import click
-import mlflow
 from urllib.parse import urlparse
 from urllib.request import url2pathname
+
+import click
+import mlflow
 import path as path_utils
+
 
 class DataLoader(object):
 
@@ -42,9 +44,9 @@ class DataLoader(object):
             for experiment in experiments:
                 run_infos = mlflow_client.list_run_infos(experiment_id=experiment.experiment_id)
                 existing_experiments = self._project.get_experiments(tag=DataLoader._to_proper_tag(experiment.name))
-                existing_run_uuids = set([
-                    str(e.get_properties().get(DataLoader.MLFLOW_RUN_ID_PROPERTY)) for e in existing_experiments
-                ])
+                existing_run_uuids = set(
+                    [str(e.get_properties().get(DataLoader.MLFLOW_RUN_ID_PROPERTY)) for e in existing_experiments]
+                )
 
                 for run_info in run_infos:
                     run_qualified_name = self._get_run_qualified_name(experiment, run_info)
@@ -68,16 +70,19 @@ class DataLoader(object):
             upload_stderr=False,
             send_hardware_metrics=False,
             run_monitoring_thread=False,
-            handle_uncaught_exceptions=True
+            handle_uncaught_exceptions=True,
         ) as neptune_exp:
-            if run.info.artifact_uri.startswith('file:/'):
+            if run.info.artifact_uri.startswith("file:/"):
                 artifacts_path = url2pathname(urlparse(run.info.artifact_uri).path)
                 with path_utils.Path(artifacts_path):
                     for artifact in os.listdir(artifacts_path):
                         neptune_exp.send_artifact(artifact)
             else:
-                click.echo('WARNING: Remote artifacts are not supported and won\'t be uploaded (artifact_uri: {}).'
-                           .format(run.info.artifact_uri))
+                click.echo(
+                    "WARNING: Remote artifacts are not supported and won't be uploaded (artifact_uri: {}).".format(
+                        run.info.artifact_uri
+                    )
+                )
 
             for metric_key in run.data.metrics.keys():
                 self._create_metric(neptune_exp, experiment, run, metric_key)
@@ -104,7 +109,7 @@ class DataLoader(object):
             DataLoader.MLFLOW_EXPERIMENT_ID_PROPERTY: str(experiment.experiment_id),
             DataLoader.MLFLOW_EXPERIMENT_NAME_PROPERTY: experiment.name,
             DataLoader.MLFLOW_RUN_ID_PROPERTY: run.info.run_uuid,
-            DataLoader.MLFLOW_RUN_NAME_PROPERTY: DataLoader._get_mlflow_run_name(run) or ''
+            DataLoader.MLFLOW_RUN_NAME_PROPERTY: DataLoader._get_mlflow_run_name(run) or "",
         }
         for key, value in run.data.tags.items():
             properties[key] = value
@@ -112,7 +117,7 @@ class DataLoader(object):
 
     @staticmethod
     def _get_tags(experiment, run):
-        tags = [DataLoader._to_proper_tag(experiment.name), 'mlflow']
+        tags = [DataLoader._to_proper_tag(experiment.name), "mlflow"]
         if DataLoader._get_mlflow_run_name(run):
             tags.append(DataLoader._to_proper_tag(DataLoader._get_mlflow_run_name(run)))
         return tags
@@ -136,4 +141,4 @@ class DataLoader(object):
 
     @staticmethod
     def _get_mlflow_run_name(run):
-        return run.data.tags.get('mlflow.runName', None)
+        return run.data.tags.get("mlflow.runName", None)

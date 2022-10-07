@@ -7,7 +7,7 @@
 `neptune-mflow` integrates `mlflow` with `Neptune` to let you get the best of both worlds.
 Enjoy tracking and reproducibility of `mlflow` with organization and collaboration of `Neptune`.
 
-With `neptune-mlflow` you can have your `mlflow` experiment runs hosted in a beautiful knowledge repo that lets you invite and manage project contributors. 
+With `neptune-mlflow` you can have your `mlflow` experiment runs hosted in a beautiful knowledge repo that lets you invite and manage project contributors.
 
 All you need to do is go to your `mlflow` project and run:
 
@@ -79,7 +79,7 @@ The best order of communication is:
 
  * [neptune community spectrum](https://spectrum.chat/neptune-community)
  * [neptune-mlflow docs](https://docs.neptune.ai/integrations/mlflow.html)
- * [github issues](https://github.com/neptune-ai/neptune-mlflow/issues) 
+ * [github issues](https://github.com/neptune-ai/neptune-mlflow/issues)
 
 # Contributing
 If you see something that you don't like you are more than welcome to contribute!

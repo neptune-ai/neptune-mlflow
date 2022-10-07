@@ -22,16 +22,15 @@ from neptune_mlflow.data_loader import DataLoader
 
 
 class TestDataLodaer(unittest.TestCase):
-
     def test_get_run_qualified_name(self):
         # given
         exp = MagicMock()
-        exp.name = 'exp_name'
+        exp.name = "exp_name"
 
         # and
         run_info = MagicMock()
         run_info.name = None
-        run_info.run_id = 'run_uuid'
+        run_info.run_id = "run_uuid"
 
         # expect
         # pylint: disable=protected-access
@@ -40,25 +39,25 @@ class TestDataLodaer(unittest.TestCase):
     def test_get_metric_file(self):
         # given
         exp = MagicMock()
-        exp.experiment_id = 'exp_id'
+        exp.experiment_id = "exp_id"
 
         # and
         run_info = MagicMock()
-        run_info.run_uuid = 'run_uuid'
+        run_info.run_uuid = "run_uuid"
 
         # and
-        metric_key = 'metric_key'
+        metric_key = "metric_key"
 
         # expect
         # pylint: disable=protected-access
         self.assertEqual(
-            DataLoader._get_metric_file(exp, run_info, metric_key),
-            "mlruns/exp_id/run_uuid/metrics/metric_key")
+            DataLoader._get_metric_file(exp, run_info, metric_key), "mlruns/exp_id/run_uuid/metrics/metric_key"
+        )
 
     def test_get_tags(self):
         # given
         exp = MagicMock()
-        exp.name = 'EXPeriMENT-NaMe'
+        exp.name = "EXPeriMENT-NaMe"
 
         # and
         run = MagicMock()
@@ -67,15 +66,13 @@ class TestDataLodaer(unittest.TestCase):
 
         # expect
         # pylint: disable=protected-access
-        self.assertEqual(
-            set(DataLoader._get_tags(exp, run)),
-            {'mlflow', 'experiment-name'})
+        self.assertEqual(set(DataLoader._get_tags(exp, run)), {"mlflow", "experiment-name"})
 
     def test_get_properties(self):
         # given
         exp = MagicMock()
         exp.experiment_id = 123
-        exp.name = 'EXPeriMENT-NaMe'
+        exp.name = "EXPeriMENT-NaMe"
 
         # and
         run = MagicMock()
@@ -86,40 +83,28 @@ class TestDataLodaer(unittest.TestCase):
 
         # and
         run.data = MagicMock()
-        run.data.tags = {
-            'key1': 'value1',
-            'key2': 'value2'
-        }
+        run.data.tags = {"key1": "value1", "key2": "value2"}
 
         # expect
         # pylint: disable=protected-access
         self.assertEqual(
             DataLoader._get_properties(exp, run),
             {
-                'mlflow/experiment/id': str(exp.experiment_id),
-                'mlflow/experiment/name': exp.name,
-                'mlflow/run/uuid': run.info.run_uuid,
-                'mlflow/run/name': '',
-                'key1': 'value1',
-                'key2': 'value2'
-            }
+                "mlflow/experiment/id": str(exp.experiment_id),
+                "mlflow/experiment/name": exp.name,
+                "mlflow/run/uuid": run.info.run_uuid,
+                "mlflow/run/name": "",
+                "key1": "value1",
+                "key2": "value2",
+            },
         )
 
     def test_get_params(self):
         # given
         run = MagicMock()
         run.data = MagicMock()
-        run.data.params = {
-            'key1': 'value1',
-            'key2': 'value2'
-        }
+        run.data.params = {"key1": "value1", "key2": "value2"}
 
         # expect
         # pylint: disable=protected-access
-        self.assertEqual(
-            DataLoader._get_params(run),
-            {
-                'key1': 'value1',
-                'key2': 'value2'
-            }
-        )
+        self.assertEqual(DataLoader._get_params(run), {"key1": "value1", "key2": "value2"})
