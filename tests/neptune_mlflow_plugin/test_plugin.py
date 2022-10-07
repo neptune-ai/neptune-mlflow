@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import unittest
 import random
+import unittest
 
 from click.testing import CliRunner
 
@@ -25,14 +25,14 @@ class TestPlugin(unittest.TestCase):
     runner = CliRunner()
 
     def test_path_not_exist(self):
-        path = '/tmp/{}'.format(random.randint(10000, 1000000))
+        path = "/tmp/{}".format(random.randint(10000, 1000000))
         result = self.runner.invoke(sync, [path])
         self.assertEqual(result.exit_code, 1)
         self.assertEqual(result.output.strip(), "ERROR: Directory `{}` doesn't exist".format(path))
 
     def test_path_is_not_dir(self):
-        path = '/tmp/{}'.format(random.randint(10000, 1000000))
-        with open(path, 'a') as f:
+        path = "/tmp/{}".format(random.randint(10000, 1000000))
+        with open(path, "a") as f:
             f.write("text")
         result = self.runner.invoke(sync, [path])
         self.assertEqual(result.exit_code, 1)

@@ -17,9 +17,9 @@
 import click
 
 
-@click.command('mlflow')
-@click.argument('path', required=False)
-@click.option('--project', '-p', help='Project name')
+@click.command("mlflow")
+@click.argument("path", required=False)
+@click.option("--project", "-p", help="Project name")
 def sync(path, project):
     """Upload mlflow runs data to Neptune.
     PATH is a directory where Neptune will look for `mlruns` directory with mlflow data.
@@ -36,4 +36,5 @@ def sync(path, project):
 
     # We do not want to import anything if process was executed for autocompletion purposes.
     from neptune_mlflow.sync import sync as run_sync
+
     return run_sync(path=path, project=project)

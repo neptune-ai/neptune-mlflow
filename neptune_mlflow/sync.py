@@ -18,8 +18,8 @@ import os
 import sys
 
 import click
-
 import neptune
+
 from neptune_mlflow.data_loader import DataLoader
 
 

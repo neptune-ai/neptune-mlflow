@@ -2,13 +2,17 @@
 import os
 import re
 from distutils.cmd import Command
-from subprocess import CalledProcessError, call, check_output
+from subprocess import (
+    CalledProcessError,
+    call,
+    check_output,
+)
 
-PREFIX = ''
-INITIAL_VERSION = '0.0.0'
+PREFIX = ""
+INITIAL_VERSION = "0.0.0"
 
-tag_re = re.compile(r'\btag: %s([0-9][^,]*)\b' % PREFIX)
-version_re = re.compile('^Version: (.+)$', re.M)
+tag_re = re.compile(r"\btag: %s([0-9][^,]*)\b" % PREFIX)
+version_re = re.compile("^Version: (.+)$", re.M)
 
 
 def get_git_version():
@@ -16,23 +20,23 @@ def get_git_version():
         return os.environ.get("VERSION")
 
     # Return the version if it has been injected into the file by git-archive
-    version = tag_re.search('$Format:%D$')
+    version = tag_re.search("$Format:%D$")
     if version:
         return version.group(1)
 
     # Get the version using "git describe".
     try:
-        cmd = 'git describe --tags --match %s[0-9.]* --dirty' % PREFIX
-        version = check_output(cmd.split()).decode().strip()[len(PREFIX):]
+        cmd = "git describe --tags --match %s[0-9.]* --dirty" % PREFIX
+        version = check_output(cmd.split()).decode().strip()[len(PREFIX) :]
     except CalledProcessError:
-        version = INITIAL_VERSION + '+' + check_output('git rev-parse HEAD'.split()).decode().strip()[:10]
-        if call('git diff --quiet'.split()) != 0:
-            version += '.dirty'
+        version = INITIAL_VERSION + "+" + check_output("git rev-parse HEAD".split()).decode().strip()[:10]
+        if call("git diff --quiet".split()) != 0:
+            version += ".dirty"
 
     # PEP 440 compatibility
-    if '-' in version:
-        version_tokens = version.split('-')
-        version = version_tokens[0] + '+' + '.'.join(version_tokens[1:])
+    if "-" in version:
+        version_tokens = version.split("-")
+        version = version_tokens[0] + "+" + ".".join(version_tokens[1:])
 
     return version
 
@@ -50,5 +54,5 @@ class GitVersion(Command):
         version = get_git_version()
         self.distribution.metadata.version = version
 
-        with open('VERSION', 'w') as version_file:
+        with open("VERSION", "w") as version_file:
             version_file.write(version)
