@@ -46,7 +46,7 @@ def main():
             author_email="contact@neptune.ai",
             description="Neptune MLFlow",
             long_description=__doc__,
-            packages=find_packages(),
+            packages=find_packages(where="src"),
             platforms="any",
             install_requires=requirements,
             entry_points={"neptune.plugins": "mlflow = neptune_mlflow_plugin:sync"},
@@ -74,6 +74,7 @@ def main():
                 "Programming Language :: Python :: 3",
                 "Topic :: Software Development :: Libraries :: Python Modules",
             ],
+            package_dir={"": "src"},
         )
 
 
