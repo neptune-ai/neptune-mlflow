@@ -17,3 +17,7 @@ exclude = '''
 profile = "black"
 line_length = 120
 force_grid_wrap = 2
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = "E203"
