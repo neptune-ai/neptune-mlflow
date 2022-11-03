@@ -33,7 +33,6 @@ class TestDataLodaer(unittest.TestCase):
         run_info.run_id = "run_uuid"
 
         # expect
-        # pylint: disable=protected-access
         self.assertEqual(DataLoader._get_run_qualified_name(exp, run_info), "exp_name/run_uuid")
 
     def test_get_metric_file(self):
@@ -49,7 +48,6 @@ class TestDataLodaer(unittest.TestCase):
         metric_key = "metric_key"
 
         # expect
-        # pylint: disable=protected-access
         self.assertEqual(
             DataLoader._get_metric_file(exp, run_info, metric_key), "mlruns/exp_id/run_uuid/metrics/metric_key"
         )
@@ -65,7 +63,6 @@ class TestDataLodaer(unittest.TestCase):
         run.data.tags = {}
 
         # expect
-        # pylint: disable=protected-access
         self.assertEqual(set(DataLoader._get_tags(exp, run)), {"mlflow", "experiment-name"})
 
     def test_get_properties(self):
@@ -86,7 +83,6 @@ class TestDataLodaer(unittest.TestCase):
         run.data.tags = {"key1": "value1", "key2": "value2"}
 
         # expect
-        # pylint: disable=protected-access
         self.assertEqual(
             DataLoader._get_properties(exp, run),
             {
@@ -106,5 +102,4 @@ class TestDataLodaer(unittest.TestCase):
         run.data.params = {"key1": "value1", "key2": "value2"}
 
         # expect
-        # pylint: disable=protected-access
         self.assertEqual(DataLoader._get_params(run), {"key1": "value1", "key2": "value2"})
