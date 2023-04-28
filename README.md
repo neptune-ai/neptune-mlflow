@@ -24,7 +24,7 @@ and easily [shareable](https://ui.neptune.ai/jakub-czakon/mlflow-integration/e/M
 ![image](https://gist.githubusercontent.com/jakubczakon/f754769a39ea6b8fa9728ede49b9165c/raw/2b3989499b90a93e75208d9f9df5fa537b82b7fd/mlflow_artifact.png)
 
 # Documentation
-See [neptune-mlflow docs](https://docs.neptune.ai/integrations/mlflow.html) for more info.
+See [neptune-mlflow docs](https://docs.neptune.ai/integrations/mlflow) for more info.
 
 # Get started
 
@@ -78,7 +78,7 @@ If you get stuck, don't worry we are here to help.
 The best order of communication is:
 
  * [neptune community spectrum](https://spectrum.chat/neptune-community)
- * [neptune-mlflow docs](https://docs.neptune.ai/integrations/mlflow.html)
+ * [neptune-mlflow docs](https://docs.neptune.ai/integrations/mlflow)
  * [github issues](https://github.com/neptune-ai/neptune-mlflow/issues)
 
 # Contributing
