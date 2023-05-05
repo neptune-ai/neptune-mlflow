@@ -13,33 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-import os
-import sys
-
-import click
 import neptune
 
-from neptune_mlflow.data_loader import DataLoader
+from neptune_mlflow import export_to_neptune
 
 
-def sync(path, project):
-    if path is None:
-        path = "."
+def sync(
+    project_name: str, api_token: str, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int
+) -> None:
 
-    if not os.path.exists(path):
-        click.echo("ERROR: Directory `{}` doesn't exist".format(path), err=True)
-        sys.exit(1)
+    project = neptune.init_project(project=project_name, api_token=api_token)
 
-    if not os.path.isdir(path):
-        click.echo("ERROR: `{}` is not a directory".format(path), err=True)
-        sys.exit(1)
-
-    if not os.path.exists(os.path.join(path, "mlruns")):
-        click.echo("ERROR: No 'mlruns' directory in {}".format(path), err=True)
-        sys.exit(1)
-
-    project = neptune.init(project_qualified_name=project)
-
-    loader = DataLoader(project, path)
-    loader.run()
+    export_to_neptune(
+        project=project,
+        mlflow_tracking_uri=mlflow_tracking_uri,
+        include_artifacts=include_artifacts,
+        max_artifact_size=max_artifact_size,
+    )

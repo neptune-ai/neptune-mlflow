@@ -18,9 +18,26 @@ import click
 
 
 @click.command("mlflow")
-@click.argument("path", required=False)
-@click.option("--project", "-p", help="Project name")
-def sync(path, project):
+@click.option("--project", "-p", help="Neptune project name", required=False, type=str)
+@click.option("--api-token", "-a", help="Your Neptune API Key", required=False, type=str)
+@click.option("--mlflow-tracking-uri", "-u", help="Your MLflow tracking URI", required=False, type=str)
+@click.option(
+    "--include-artifacts",
+    "-i",
+    help="Specifies whether to also include artifacts in the upload",
+    required=False,
+    default=False,
+    type=bool,
+)
+@click.option(
+    "--max-artifact-size",
+    "-m",
+    help="Maximum size uploaded to Neptune, unit is in MB",
+    required=False,
+    default=50,
+    type=int,
+)
+def sync(project: str, api_token: str, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int):
     """Upload mlflow runs data to Neptune.
     PATH is a directory where Neptune will look for `mlruns` directory with mlflow data.
 
@@ -37,4 +54,10 @@ def sync(path, project):
     # We do not want to import anything if process was executed for autocompletion purposes.
     from neptune_mlflow.sync import sync as run_sync
 
-    return run_sync(path=path, project=project)
+    return run_sync(
+        project_name=project,
+        api_token=api_token,
+        mlflow_tracking_uri=mlflow_tracking_uri,
+        include_artifacts=include_artifacts,
+        max_artifact_size=max_artifact_size,
+    )
