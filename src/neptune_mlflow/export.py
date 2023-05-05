@@ -52,7 +52,9 @@ def export_to_neptune(*, project: Project, mlflow_tracking_uri: str, include_art
         experiment_ids.append(experiment.experiment_id)
 
     mlflow_runs = mlflow_client.search_runs(experiment_ids=experiment_ids, run_view_type=ViewType.ALL)
-    existing_neptune_run_ids = project.fetch_runs_table().to_pandas()["sys/custom_run_id"].to_list()
+    existing_neptune_run_ids = {
+        run_id for run_id in project.fetch_runs_table().to_pandas()["sys/custom_run_id"].to_list()
+    }
 
     for run in mlflow_runs:
         if run.info.run_id not in existing_neptune_run_ids:
