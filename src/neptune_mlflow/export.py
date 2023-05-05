@@ -35,7 +35,7 @@ MLFLOW_RUN_NAME_PROPERTY = "mlflow/run/name"
 
 
 def export_to_neptune(*, project: Project, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int):
-    mlflow_client = mlflow.tracking.MlflowClient()
+    mlflow_client = mlflow.tracking.MlflowClient(tracking_uri=mlflow_tracking_uri)
     experiments = mlflow_client.search_experiments()
 
     experiment_ids = []
