@@ -13,18 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
-import re
 from datetime import datetime
-from urllib.parse import urlparse
-from urllib.request import url2pathname
 
 import click
 import mlflow
 import neptune
 from mlflow.entities import (
     Run,
-    RunInfo,
     ViewType,
 )
 
@@ -70,90 +65,15 @@ def export_to_neptune(*, project: Project, mlflow_tracking_uri: str, include_art
 
 def _export_run(mlflow_run: Run) -> None:
     neptune_run = neptune.init_run(custom_run_id=mlflow_run.info.run_id)
-    # neptune_run["run_info"] = mlflow_run.info.__dict__
+
+    neptune_run["run_info/run_id"] = mlflow_run.info.run_id
+    neptune_run["run_info/experiment_id"] = mlflow_run.info.experiment_id
+    neptune_run["run_info/run_uuid"] = mlflow_run.info.run_uuid
+    neptune_run["run_info/run_name"] = mlflow_run.info.run_name
+    neptune_run["run_info/user_id"] = mlflow_run.info.user_id
+    neptune_run["run_info/status"] = mlflow_run.info.status
+    neptune_run["run_info/start_time"] = datetime.fromtimestamp(mlflow_run.info.start_time / 1e3)
+    neptune_run["run_info/end_time"] = datetime.fromtimestamp(mlflow_run.info.end_time / 1e3)
+    neptune_run["run_info/lifecycle_stage"] = mlflow_run.info.lifecycle_stage
+
     neptune_run["run_data"] = mlflow_run.data.to_dictionary()
-
-
-def _get_name_for_experiment(experiment):
-    return experiment.name or "experiment-{}".format(experiment.experiment_id)
-
-
-def _get_run_qualified_name(experiment, mlflow_run_info: RunInfo):
-    exp_name = _get_name_for_experiment(experiment)
-    return "{}/{}".format(exp_name, mlflow_run_info.run_id)
-
-
-def _to_proper_tag(tag: str):
-    return re.sub("[^a-zA-Z0-9\\-_]", "_", tag).lower()
-
-
-def _get_metric_file(experiment, run_info: RunInfo, metric_key: str):
-    return "mlruns/{}/{}/metrics/{}".format(experiment.experiment_id, run_info.run_uuid, metric_key)
-
-
-def _get_mlflow_run_name(mlflow_run: Run):
-    return mlflow_run.data.tags.get("mlflow.runName", None)
-
-
-def _create_metric(neptune_exp, experiment, mlflow_run: Run, metric_key: str):
-    with open(_get_metric_file(experiment, mlflow_run.info, metric_key)) as f:
-        for idx, line in enumerate(f, start=1):
-            value = float(line.split()[1])
-            neptune_exp.send_metric(metric_key, idx, value)
-
-
-def _get_params(mlflow_run: Run):
-    params = {}
-    for key, value in mlflow_run.data.params.items():
-        params[key] = value
-    return params
-
-
-def _create_neptune_experiment(project: Project, experiment, mlflow_run: Run):
-    with project.create_experiment(
-        name=_get_name_for_experiment(experiment),
-        params=_get_params(mlflow_run),
-        properties=_get_properties(experiment, mlflow_run),
-        tags=_get_tags(experiment, mlflow_run),
-        upload_source_files=[],
-        abort_callback=lambda *args: None,
-        upload_stdout=False,
-        upload_stderr=False,
-        send_hardware_metrics=False,
-        run_monitoring_thread=False,
-        handle_uncaught_exceptions=True,
-    ) as neptune_exp:
-        if mlflow_run.info.artifact_uri.startswith("file:/"):
-            artifacts_path = url2pathname(urlparse(mlflow_run.info.artifact_uri).path)
-            for artifact in os.listdir(artifacts_path):
-                neptune_exp.send_artifact(artifact)
-        else:
-            click.echo(
-                "WARNING: Remote artifacts are not supported and won't be uploaded (artifact_uri: {}).".format(
-                    mlflow_run.info.artifact_uri
-                )
-            )
-
-        for metric_key in mlflow_run.data.metrics.keys():
-            _create_metric(neptune_exp, experiment, mlflow_run, metric_key)
-
-        return neptune_exp.id
-
-
-def _get_properties(experiment, mlflow_run: Run):
-    properties = {
-        MLFLOW_EXPERIMENT_ID_PROPERTY: str(experiment.experiment_id),
-        MLFLOW_EXPERIMENT_NAME_PROPERTY: experiment.name,
-        MLFLOW_RUN_ID_PROPERTY: mlflow_run.info.run_uuid,
-        MLFLOW_RUN_NAME_PROPERTY: _get_mlflow_run_name(mlflow_run) or "",
-    }
-    for key, value in mlflow_run.data.tags.items():
-        properties[key] = value
-    return properties
-
-
-def _get_tags(experiment, mlflow_run: Run):
-    tags = [_to_proper_tag(experiment.name), "mlflow"]
-    if _get_mlflow_run_name(mlflow_run):
-        tags.append(_to_proper_tag(_get_mlflow_run_name(mlflow_run)))
-    return tags
