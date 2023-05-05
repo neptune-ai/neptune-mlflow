@@ -64,16 +64,15 @@ def export_to_neptune(*, project: Project, mlflow_tracking_uri: str, include_art
 
 
 def _export_run(mlflow_run: Run) -> None:
-    neptune_run = neptune.init_run(custom_run_id=mlflow_run.info.run_id)
+    with neptune.init_run(custom_run_id=mlflow_run.info.run_id) as neptune_run:
+        neptune_run["run_info/run_id"] = mlflow_run.info.run_id
+        neptune_run["run_info/experiment_id"] = mlflow_run.info.experiment_id
+        neptune_run["run_info/run_uuid"] = mlflow_run.info.run_uuid
+        neptune_run["run_info/run_name"] = mlflow_run.info.run_name
+        neptune_run["run_info/user_id"] = mlflow_run.info.user_id
+        neptune_run["run_info/status"] = mlflow_run.info.status
+        neptune_run["run_info/start_time"] = datetime.fromtimestamp(mlflow_run.info.start_time / 1e3)
+        neptune_run["run_info/end_time"] = datetime.fromtimestamp(mlflow_run.info.end_time / 1e3)
+        neptune_run["run_info/lifecycle_stage"] = mlflow_run.info.lifecycle_stage
 
-    neptune_run["run_info/run_id"] = mlflow_run.info.run_id
-    neptune_run["run_info/experiment_id"] = mlflow_run.info.experiment_id
-    neptune_run["run_info/run_uuid"] = mlflow_run.info.run_uuid
-    neptune_run["run_info/run_name"] = mlflow_run.info.run_name
-    neptune_run["run_info/user_id"] = mlflow_run.info.user_id
-    neptune_run["run_info/status"] = mlflow_run.info.status
-    neptune_run["run_info/start_time"] = datetime.fromtimestamp(mlflow_run.info.start_time / 1e3)
-    neptune_run["run_info/end_time"] = datetime.fromtimestamp(mlflow_run.info.end_time / 1e3)
-    neptune_run["run_info/lifecycle_stage"] = mlflow_run.info.lifecycle_stage
-
-    neptune_run["run_data"] = mlflow_run.data.to_dictionary()
+        neptune_run["run_data"] = mlflow_run.data.to_dictionary()
