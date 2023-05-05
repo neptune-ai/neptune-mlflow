@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+
 import neptune
 
 from neptune_mlflow import export_to_neptune
@@ -22,7 +24,12 @@ def sync(
     project_name: str, api_token: str, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int
 ) -> None:
 
-    project = neptune.init_project(project=project_name, api_token=api_token)
+    if project_name:
+        os.environ["NEPTUNE_PROJECT"] = project_name
+    if api_token:
+        os.environ["NEPTUNE_API_KEY"] = api_token
+
+    project = neptune.init_project()
 
     export_to_neptune(
         project=project,
