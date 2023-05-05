@@ -24,6 +24,9 @@ def sync(
     project_name: str, api_token: str, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int
 ) -> None:
 
+    if max_artifact_size <= 0:
+        raise ValueError("Max artifact size must be a positive integer")
+
     if project_name:
         os.environ["NEPTUNE_PROJECT"] = project_name
     if api_token:
