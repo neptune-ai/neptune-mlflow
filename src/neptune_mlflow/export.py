@@ -60,6 +60,13 @@ def export_to_neptune(*, project: Project, mlflow_tracking_uri: str, include_art
         if run.info.run_id not in existing_neptune_run_ids:
             click.echo("Loading run {}".format(run.info.run_name))
             _export_run(run)
+
+            if include_artifacts:
+                artifacts = mlflow_client.list_artifacts(run_id=run.info.run_id)
+                for artifact in artifacts:
+                    if not artifact.is_dir and artifact.file_size <= max_artifact_size:
+                        mlflow_client.download_artifacts(run_id=run.info.run_id, path=artifact.path)
+                        # logic to upload file to Neptune
             click.echo("Run {} was saved".format(run.info.run_name))
         else:
             click.echo("Ignoring run {} since it already exists".format(run.info.run_name))
