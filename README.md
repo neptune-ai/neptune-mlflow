@@ -6,8 +6,6 @@
 
 ---
 
-[![Build Status](https://travis-ci.org/neptune-ai/neptune-mlflow.svg?branch=master)](https://travis-ci.org/neptune-ai/neptune-mlflow)
-
 ![mlflow neptune.ai integration](docs/_static/mlflow_neptuneml.png)
 
 ## Overview
@@ -23,7 +21,7 @@ All you need to do is go to your MLflow project and run:
 neptune mlflow --project USER_NAME/PROJECT_NAME
 ```
 
-and you have your experiments organized and easily shareable with the world:
+and you have your experiments organized and easily shareable with the world.
 
 ## Documentation
 
@@ -32,6 +30,7 @@ See [neptune-mlflow docs](https://docs-legacy.neptune.ai/integrations/mlflow.htm
 ## Get started
 
 ### Register
+
 Go to [neptune.ai](https://neptune.ai/?utm_source=github&utm_medium=repository&utm_campaign=integration-mlflow&utm_content=homepage) and sign up.
 
 It is completely free for individuals and non-organizations, and you can invite others to join your team!
@@ -65,6 +64,7 @@ neptune mlflow --project USER_NAME/PROJECT_NAME
 ```
 
 ## Explore and Share
+
 You can now explore and organize your experiments in Neptune, and share it with anyone:
 
 * by sending a link to your project, experiment or chart if it is public
