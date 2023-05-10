@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import os
+from typing import Optional
 
 import neptune
 
@@ -21,8 +22,15 @@ from neptune_mlflow import export_to_neptune
 
 
 def sync(
-    project_name: str, api_token: str, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int
+    project_name: Optional[str] = None,
+    api_token: Optional[str] = None,
+    mlflow_tracking_uri: Optional[str] = None,
+    include_artifacts: bool = False,
+    max_artifact_size: int = 50,
 ) -> None:
+
+    if not isinstance(max_artifact_size, int):
+        raise TypeError(f"Invalid type for `max_artifact_size`. Expected in, got {type(max_artifact_size)} instead.")
 
     if max_artifact_size <= 0:
         raise ValueError("Max artifact size must be a positive integer")
