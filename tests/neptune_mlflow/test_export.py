@@ -116,10 +116,9 @@ class TestNeptuneExport(unittest.TestCase):
         os.environ["NEPTUNE_MODE"] = "debug"
 
     def test_export_project_metadata(self) -> None:
-        with (
-            patch("neptune.Project", {}) as mock_project,
-            patch("mlflow.entities.Experiment", MockExperiment()) as mock_experiment,
-        ):
+        with patch("neptune.Project", {}) as mock_project, patch(
+            "mlflow.entities.Experiment", MockExperiment()
+        ) as mock_experiment:
             export_project_metadata(mock_project, mock_experiment)
             assert mock_project["ex1/tags"] == mock_experiment.tags
 
