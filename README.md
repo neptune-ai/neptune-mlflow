@@ -76,7 +76,7 @@ If you get stuck, don't worry. We are here to help.
 
 The best order of communication is:
 
- * [GitHub issues](https://github.com/neptune-ai/neptune-tensorboard/issues)
+ * [GitHub issues](https://github.com/neptune-ai/neptune-mlflow/issues)
  * [Email](mailto:support@neptune.ai)
 
 ## Contributing
