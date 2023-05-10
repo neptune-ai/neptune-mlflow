@@ -19,6 +19,7 @@ import click
 import mlflow
 import neptune
 from mlflow.entities import (
+    Experiment,
     Run,
     ViewType,
 )
@@ -45,14 +46,7 @@ def export_to_neptune(
 
     experiment_ids = []
     for experiment in experiments:
-        project[f"{experiment.experiment_id}/tags"] = experiment.tags
-        project[f"{experiment.experiment_id}/name"] = experiment.name
-
-        # https://stackoverflow.com/questions/9744775/how-to-convert-integer-timestamp-into-a-datetime
-        project[f"{experiment.experiment_id}/creation_time"] = datetime.fromtimestamp(experiment.creation_time / 1e3)
-        project[f"{experiment.experiment_id}/last_updated_time"] = datetime.fromtimestamp(
-            experiment.last_update_time / 1e3
-        )
+        export_project_metadata(project, experiment)
 
         experiment_ids.append(experiment.experiment_id)
 
@@ -64,7 +58,7 @@ def export_to_neptune(
     for run in mlflow_runs:
         if run.info.run_id not in existing_neptune_run_ids:
             click.echo("Loading run {}".format(run.info.run_name))
-            _export_run(run)
+            export_run(run)
 
             if include_artifacts:
                 artifacts = mlflow_client.list_artifacts(run_id=run.info.run_id)
@@ -77,8 +71,17 @@ def export_to_neptune(
             click.echo("Ignoring run {} since it already exists".format(run.info.run_name))
 
 
-def _export_run(mlflow_run: Run) -> None:
-    with neptune.init_run(custom_run_id=mlflow_run.info.run_id) as neptune_run:
+def export_project_metadata(project: Project, experiment: Experiment) -> None:
+    project[f"{experiment.experiment_id}/tags"] = experiment.tags
+    project[f"{experiment.experiment_id}/name"] = experiment.name
+
+    # https://stackoverflow.com/questions/9744775/how-to-convert-integer-timestamp-into-a-datetime
+    project[f"{experiment.experiment_id}/creation_time"] = datetime.fromtimestamp(experiment.creation_time / 1e3)
+    project[f"{experiment.experiment_id}/last_updated_time"] = datetime.fromtimestamp(experiment.last_update_time / 1e3)
+
+
+def export_run(mlflow_run: Run) -> None:
+    with neptune.Run(custom_run_id=mlflow_run.info.run_id) as neptune_run:
         neptune_run["run_info/run_id"] = mlflow_run.info.run_id
         neptune_run["run_info/experiment_id"] = mlflow_run.info.experiment_id
         neptune_run["run_info/run_uuid"] = mlflow_run.info.run_uuid
