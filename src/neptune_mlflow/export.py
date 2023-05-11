@@ -38,7 +38,6 @@ MLFLOW_RUN_NAME_PROPERTY = "mlflow/run/name"
 def export_to_neptune(
     *, project: Project, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int = 50
 ):
-
     max_artifact_size *= 2e20  # to bytes
 
     mlflow_client = mlflow.tracking.MlflowClient(tracking_uri=mlflow_tracking_uri)
@@ -51,14 +50,19 @@ def export_to_neptune(
         experiment_ids.append(experiment.experiment_id)
 
     mlflow_runs = mlflow_client.search_runs(experiment_ids=experiment_ids, run_view_type=ViewType.ALL)
-    existing_neptune_run_ids = {
-        run_id for run_id in project.fetch_runs_table().to_pandas()["sys/custom_run_id"].to_list()
-    }
+
+    try:
+        existing_neptune_run_ids = {
+            run_id for run_id in project.fetch_runs_table().to_pandas()["sys/custom_run_id"].to_list()
+        }
+    except KeyError:
+        # empty project
+        existing_neptune_run_ids = set()
 
     for run in mlflow_runs:
         if run.info.run_id not in existing_neptune_run_ids:
             click.echo("Loading run {}".format(run.info.run_name))
-            export_run(run)
+            export_run(run, mlflow_client)
 
             if include_artifacts:
                 artifacts = mlflow_client.list_artifacts(run_id=run.info.run_id)
@@ -80,7 +84,7 @@ def export_project_metadata(project: Project, experiment: Experiment) -> None:
     project[f"{experiment.experiment_id}/last_updated_time"] = datetime.fromtimestamp(experiment.last_update_time / 1e3)
 
 
-def export_run(mlflow_run: Run) -> None:
+def export_run(mlflow_run: Run, mlflow_client: mlflow.tracking.MlflowClient) -> None:
     with neptune.Run(custom_run_id=mlflow_run.info.run_id) as neptune_run:
         neptune_run["run_info/run_id"] = mlflow_run.info.run_id
         neptune_run["run_info/experiment_id"] = mlflow_run.info.experiment_id
@@ -92,4 +96,23 @@ def export_run(mlflow_run: Run) -> None:
         neptune_run["run_info/end_time"] = datetime.fromtimestamp(mlflow_run.info.end_time / 1e3)
         neptune_run["run_info/lifecycle_stage"] = mlflow_run.info.lifecycle_stage
 
-        neptune_run["run_data"] = mlflow_run.data.to_dictionary()
+        _export_metrics(neptune_run, mlflow_run, mlflow_client)
+
+        data_dict = mlflow_run.data.to_dictionary()
+        del data_dict["metrics"]
+        neptune_run["run_data"] = data_dict
+
+
+def _export_metrics(neptune_run: neptune.Run, mlflow_run: Run, mlflow_client: mlflow.tracking.MlflowClient) -> None:
+    metric_keys = mlflow_run.data.to_dictionary()["metrics"].keys()
+
+    for key in metric_keys:
+        metric_values = [
+            metric.value
+            for metric in mlflow_client.get_metric_history(
+                run_id=mlflow_run.info.run_id,
+                key=key,
+            )
+        ]
+        for val in metric_values:
+            neptune_run[f"run_data/metrics/{key}"].append(val)
