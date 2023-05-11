@@ -58,18 +58,18 @@ class NeptuneExporter:
 
         existing_neptune_run_ids = self._get_existing_neptune_run_ids()
 
-        for run in mlflow_runs:
-            if run.info.run_id not in existing_neptune_run_ids:
-                click.echo("Loading run {}".format(run.info.run_name))
-                with neptune.init_run(custom_run_id=run.info.run_id) as neptune_run:
-                    self._export_run(neptune_run, run)
+        for mlflow_run in mlflow_runs:
+            if mlflow_run.info.run_id not in existing_neptune_run_ids:
+                click.echo("Loading mlflow_run {}".format(mlflow_run.info.run_name))
+                with neptune.init_run(custom_run_id=mlflow_run.info.run_id) as neptune_run:
+                    self._export_run(neptune_run, mlflow_run)
 
                     if self.include_artifacts:
-                        self._export_artifacts(neptune_run, run)
+                        self._export_artifacts(neptune_run, mlflow_run)
 
-                        click.echo("Run {} was saved".format(run.info.run_name))
+                        click.echo("Run {} was saved".format(mlflow_run.info.run_name))
                     else:
-                        click.echo("Ignoring run {} since it already exists".format(run.info.run_name))
+                        click.echo("Ignoring mlflow_run {} since it already exists".format(mlflow_run.info.run_name))
 
     def _get_existing_neptune_run_ids(self) -> Set[str]:
         try:
