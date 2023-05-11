@@ -14,105 +14,123 @@
 # limitations under the License.
 #
 from datetime import datetime
+from typing import Set
 
 import click
 import mlflow
 import neptune
-from mlflow.entities import (
-    Experiment,
-    Run,
-    ViewType,
-)
+from mlflow.entities import Experiment
+from mlflow.entities import Run as MlflowRun
+from mlflow.entities import ViewType
+from mlflow.tracking.artifact_utils import get_artifact_uri
 
 try:
     from neptune import Project
+    from neptune import Run as NeptuneRun
 except ImportError:
     from neptune.new.metadata_containers import Project
-
-MLFLOW_EXPERIMENT_ID_PROPERTY = "mlflow/experiment/id"
-MLFLOW_EXPERIMENT_NAME_PROPERTY = "mlflow/experiment/name"
-MLFLOW_RUN_ID_PROPERTY = "mlflow/run/uuid"
-MLFLOW_RUN_NAME_PROPERTY = "mlflow/run/name"
+    from neptune.new.metadata_containers import Run as NeptuneRun
 
 
-def export_to_neptune(
-    *, project: Project, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int = 50
-):
-    max_artifact_size *= 2e20  # to bytes
+class NeptuneExporter:
+    def __init__(
+        self, *, project: Project, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int = 50
+    ):
+        self.project = project
+        self.mlflow_tracking_uri = mlflow_tracking_uri
+        self.include_artifacts = include_artifacts
+        self.max_artifact_size = max_artifact_size * 2e20  # to bytes
 
-    mlflow_client = mlflow.tracking.MlflowClient(tracking_uri=mlflow_tracking_uri)
-    experiments = mlflow_client.search_experiments()
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+        self.mlflow_client = mlflow.tracking.MlflowClient()
 
-    experiment_ids = []
-    for experiment in experiments:
-        export_project_metadata(project, experiment)
+    def run(self) -> None:
 
-        experiment_ids.append(experiment.experiment_id)
+        experiments = self.mlflow_client.search_experiments()
 
-    mlflow_runs = mlflow_client.search_runs(experiment_ids=experiment_ids, run_view_type=ViewType.ALL)
+        experiment_ids = []
+        for experiment in experiments:
+            self._export_project_metadata(experiment)
 
-    try:
-        existing_neptune_run_ids = {
-            run_id for run_id in project.fetch_runs_table().to_pandas()["sys/custom_run_id"].to_list()
-        }
-    except KeyError:
-        # empty project
-        existing_neptune_run_ids = set()
+            experiment_ids.append(experiment.experiment_id)
 
-    for run in mlflow_runs:
-        if run.info.run_id not in existing_neptune_run_ids:
-            click.echo("Loading run {}".format(run.info.run_name))
-            export_run(run, mlflow_client)
+        mlflow_runs = self.mlflow_client.search_runs(experiment_ids=experiment_ids, run_view_type=ViewType.ALL)
 
-            if include_artifacts:
-                artifacts = mlflow_client.list_artifacts(run_id=run.info.run_id)
-                for artifact in artifacts:
-                    if not artifact.is_dir and artifact.file_size <= max_artifact_size:
-                        mlflow_client.download_artifacts(run_id=run.info.run_id, path=artifact.path)
-                        # logic to upload file to Neptune
-            click.echo("Run {} was saved".format(run.info.run_name))
-        else:
-            click.echo("Ignoring run {} since it already exists".format(run.info.run_name))
+        existing_neptune_run_ids = self._get_existing_neptune_run_ids()
 
+        for run in mlflow_runs:
+            if run.info.run_id not in existing_neptune_run_ids:
+                click.echo("Loading run {}".format(run.info.run_name))
+                with neptune.init_run(custom_run_id=run.info.run_id) as neptune_run:
+                    self._export_run(neptune_run, run)
 
-def export_project_metadata(project: Project, experiment: Experiment) -> None:
-    project[f"{experiment.experiment_id}/tags"] = experiment.tags
-    project[f"{experiment.experiment_id}/name"] = experiment.name
+                    if self.include_artifacts:
+                        self._export_artifacts(neptune_run, run)
 
-    # https://stackoverflow.com/questions/9744775/how-to-convert-integer-timestamp-into-a-datetime
-    project[f"{experiment.experiment_id}/creation_time"] = datetime.fromtimestamp(experiment.creation_time / 1e3)
-    project[f"{experiment.experiment_id}/last_updated_time"] = datetime.fromtimestamp(experiment.last_update_time / 1e3)
+                        click.echo("Run {} was saved".format(run.info.run_name))
+                    else:
+                        click.echo("Ignoring run {} since it already exists".format(run.info.run_name))
 
+    def _get_existing_neptune_run_ids(self) -> Set[str]:
+        try:
+            existing_neptune_run_ids = {
+                run_id for run_id in self.project.fetch_runs_table().to_pandas()["sys/custom_run_id"].to_list()
+            }
+        except KeyError:
+            # empty project
+            existing_neptune_run_ids = set()
 
-def export_run(mlflow_run: Run, mlflow_client: mlflow.tracking.MlflowClient) -> None:
-    with neptune.Run(custom_run_id=mlflow_run.info.run_id) as neptune_run:
-        neptune_run["run_info/run_id"] = mlflow_run.info.run_id
-        neptune_run["run_info/experiment_id"] = mlflow_run.info.experiment_id
-        neptune_run["run_info/run_uuid"] = mlflow_run.info.run_uuid
-        neptune_run["run_info/run_name"] = mlflow_run.info.run_name
-        neptune_run["run_info/user_id"] = mlflow_run.info.user_id
-        neptune_run["run_info/status"] = mlflow_run.info.status
-        neptune_run["run_info/start_time"] = datetime.fromtimestamp(mlflow_run.info.start_time / 1e3)
-        neptune_run["run_info/end_time"] = datetime.fromtimestamp(mlflow_run.info.end_time / 1e3)
-        neptune_run["run_info/lifecycle_stage"] = mlflow_run.info.lifecycle_stage
+        return existing_neptune_run_ids
 
-        _export_metrics(neptune_run, mlflow_run, mlflow_client)
+    def _export_project_metadata(self, experiment: Experiment) -> None:
+        self.project[f"{experiment.experiment_id}/experiment_id"] = experiment.experiment_id
+        self.project[f"{experiment.experiment_id}/tags"] = experiment.tags
+        self.project[f"{experiment.experiment_id}/name"] = experiment.name
+
+        # https://stackoverflow.com/questions/9744775/how-to-convert-integer-timestamp-into-a-datetime
+        self.project[f"{experiment.experiment_id}/creation_time"] = datetime.fromtimestamp(
+            experiment.creation_time / 1e3
+        )
+        self.project[f"{experiment.experiment_id}/last_updated_time"] = datetime.fromtimestamp(
+            experiment.last_update_time / 1e3
+        )
+
+    def _export_run(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
+        info = dict(mlflow_run.info)
+
+        if "start_time" in info:
+            neptune_run["run_info/start_time"] = datetime.fromtimestamp(mlflow_run.info.start_time / 1e3)
+            del info["start_time"]
+        if "end_time" in info:
+            neptune_run["run_info/end_time"] = datetime.fromtimestamp(mlflow_run.info.end_time / 1e3)
+            del info["end_time"]
+
+        neptune_run["run_info"] = info
+
+        self._export_metrics(neptune_run, mlflow_run)
 
         data_dict = mlflow_run.data.to_dictionary()
         del data_dict["metrics"]
         neptune_run["run_data"] = data_dict
 
+    def _export_metrics(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
+        metric_keys = mlflow_run.data.to_dictionary()["metrics"].keys()
 
-def _export_metrics(neptune_run: neptune.Run, mlflow_run: Run, mlflow_client: mlflow.tracking.MlflowClient) -> None:
-    metric_keys = mlflow_run.data.to_dictionary()["metrics"].keys()
+        for key in metric_keys:
+            metric_values = [
+                metric.value
+                for metric in self.mlflow_client.get_metric_history(
+                    run_id=mlflow_run.info.run_id,
+                    key=key,
+                )
+            ]
+            for val in metric_values:
+                neptune_run[f"run_data/metrics/{key}"].append(val)
 
-    for key in metric_keys:
-        metric_values = [
-            metric.value
-            for metric in mlflow_client.get_metric_history(
-                run_id=mlflow_run.info.run_id,
-                key=key,
-            )
-        ]
-        for val in metric_values:
-            neptune_run[f"run_data/metrics/{key}"].append(val)
+    def _export_artifacts(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
+        for artifact in self.mlflow_client.list_artifacts(run_id=mlflow_run.info.run_id):
+            if artifact.is_dir or artifact.file_size > self.max_artifact_size:
+                continue
+            path = artifact.path
+            uri = get_artifact_uri(run_id=mlflow_run.info.run_id, artifact_path=path)
+            neptune_run[path].track_files(uri)

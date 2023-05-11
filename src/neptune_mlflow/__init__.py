@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-__all__ = ["export_to_neptune"]
+__all__ = ["NeptuneExporter"]
 
-from neptune_mlflow.export import export_to_neptune
+from neptune_mlflow.export import NeptuneExporter

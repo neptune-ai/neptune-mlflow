@@ -18,7 +18,7 @@ from typing import Optional
 
 import neptune
 
-from neptune_mlflow import export_to_neptune
+from neptune_mlflow import NeptuneExporter
 
 
 def sync(
@@ -42,9 +42,9 @@ def sync(
 
     project = neptune.init_project()
 
-    export_to_neptune(
+    NeptuneExporter(
         project=project,
         mlflow_tracking_uri=mlflow_tracking_uri,
         include_artifacts=include_artifacts,
         max_artifact_size=max_artifact_size,
-    )
+    ).run()
