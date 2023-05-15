@@ -94,5 +94,5 @@ force_grid_wrap = 2
 max-line-length = 120
 extend-ignore = "E203"
 
-[tool.poetry.scripts]
-neptune-mlflow = "neptune_mlflow_plugin:sync"
+[tool.poetry.plugins."neptune.plugins"]
+"mlflow" = "neptune_mlflow_plugin:sync"
