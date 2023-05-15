@@ -67,7 +67,9 @@ class NeptuneExporter:
             if mlflow_run.info.run_id not in existing_neptune_run_ids:
                 click.echo("Loading mlflow_run {}".format(mlflow_run.info.run_name))
                 with neptune.init_run(custom_run_id=mlflow_run.info.run_id) as neptune_run:
-                    self._export_run(neptune_run, mlflow_run)
+
+                    self._export_run_info(neptune_run, mlflow_run)
+                    self._export_run_data(neptune_run, mlflow_run)
 
                     if self.include_artifacts:
                         self._export_artifacts(neptune_run, mlflow_run)
@@ -100,7 +102,8 @@ class NeptuneExporter:
             experiment.last_update_time / 1e3
         )
 
-    def _export_run(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
+    @staticmethod
+    def _export_run_info(neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
         info = dict(mlflow_run.info)
 
         if "start_time" in info:
@@ -112,13 +115,7 @@ class NeptuneExporter:
 
         neptune_run["run_info"] = info
 
-        self._export_metrics(neptune_run, mlflow_run)
-
-        data_dict = mlflow_run.data.to_dictionary()
-        del data_dict["metrics"]
-        neptune_run["run_data"] = data_dict
-
-    def _export_metrics(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
+    def _export_run_data(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
         metric_keys = mlflow_run.data.to_dictionary()["metrics"].keys()
 
         for key in metric_keys:
@@ -131,6 +128,10 @@ class NeptuneExporter:
             ]
             for val in metric_values:
                 neptune_run[f"run_data/metrics/{key}"].append(val)
+
+        data_dict = mlflow_run.data.to_dictionary()
+        del data_dict["metrics"]
+        neptune_run["run_data"] = data_dict
 
     def _export_artifacts(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
         for artifact in self.mlflow_client.list_artifacts(run_id=mlflow_run.info.run_id):
