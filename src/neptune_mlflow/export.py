@@ -116,7 +116,8 @@ class NeptuneExporter:
         neptune_run["run_info"] = info
 
     def _export_run_data(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
-        metric_keys = mlflow_run.data.to_dictionary()["metrics"].keys()
+        data_dict = mlflow_run.data.to_dictionary()
+        metric_keys = data_dict["metrics"].keys()
 
         for key in metric_keys:
             metric_values = [
@@ -129,7 +130,6 @@ class NeptuneExporter:
             for val in metric_values:
                 neptune_run[f"run_data/metrics/{key}"].append(val)
 
-        data_dict = mlflow_run.data.to_dictionary()
         del data_dict["metrics"]
         neptune_run["run_data"] = data_dict
 
