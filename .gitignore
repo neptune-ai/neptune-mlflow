@@ -110,3 +110,6 @@ venv.bak/
 
 # MLflow
 mlruns/
+
+# Neptune
+.neptune/
