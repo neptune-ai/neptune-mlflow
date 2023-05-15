@@ -14,7 +14,7 @@ from neptune_mlflow import NeptuneExporter
 
 @pytest.fixture(scope="session")
 def neptune_project() -> Project:
-    with init_project(mode="debug") as project:
+    with init_project(mode="debug", project="organization/project") as project:
         yield project
 
 
