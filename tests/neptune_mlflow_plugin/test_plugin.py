@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import random
 import unittest
+from unittest.mock import patch
 
 from click.testing import CliRunner
 
@@ -24,16 +24,21 @@ from neptune_mlflow_plugin import sync
 class TestPlugin(unittest.TestCase):
     runner = CliRunner()
 
-    def test_path_not_exist(self):
-        path = "/tmp/{}".format(random.randint(10000, 1000000))
-        result = self.runner.invoke(sync, [path])
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output.strip(), "ERROR: Directory `{}` doesn't exist".format(path))
+    @patch("neptune_mlflow.sync.sync")
+    def test_sync_called_once(self, mock_sync):
+        result = self.runner.invoke(sync)
 
-    def test_path_is_not_dir(self):
-        path = "/tmp/{}".format(random.randint(10000, 1000000))
-        with open(path, "a") as f:
-            f.write("text")
-        result = self.runner.invoke(sync, [path])
+        self.assertEqual(result.exit_code, 0)
+
+        mock_sync.assert_called_once_with(
+            project_name=None, api_token=None, mlflow_tracking_uri=None, include_artifacts=False, max_artifact_size=50
+        )
+
+    def test_invalid_max_artifact_size(self):
+        result = self.runner.invoke(sync, ["-m", -100])
         self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output.strip(), "ERROR: `{}` is not a directory".format(path))
+        self.assertIsInstance(result.exception, ValueError)
+
+        result = self.runner.invoke(sync, ["-m", 0])
+        self.assertEqual(result.exit_code, 1)
+        self.assertIsInstance(result.exception, ValueError)

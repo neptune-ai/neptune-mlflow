@@ -30,7 +30,7 @@ def sync(
 ) -> None:
 
     if not isinstance(max_artifact_size, int):
-        raise TypeError(f"Invalid type for `max_artifact_size`. Expected in, got {type(max_artifact_size)} instead.")
+        raise TypeError(f"Invalid type for `max_artifact_size`. Expected int, got {type(max_artifact_size)} instead.")
 
     if max_artifact_size <= 0:
         raise ValueError("Max artifact size must be a positive integer")
