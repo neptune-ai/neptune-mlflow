@@ -34,7 +34,12 @@ except ImportError:
 
 class NeptuneExporter:
     def __init__(
-        self, *, project: Project, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int = 50
+        self,
+        *,
+        project: Project,
+        mlflow_tracking_uri: str,
+        include_artifacts: bool = False,
+        max_artifact_size: int = 50,
     ):
         self.project = project
         self.mlflow_tracking_uri = mlflow_tracking_uri
@@ -91,7 +96,7 @@ class NeptuneExporter:
         self.project[f"{experiment.experiment_id}/creation_time"] = datetime.fromtimestamp(
             experiment.creation_time / 1e3
         )
-        self.project[f"{experiment.experiment_id}/last_updated_time"] = datetime.fromtimestamp(
+        self.project[f"{experiment.experiment_id}/last_update_time"] = datetime.fromtimestamp(
             experiment.last_update_time / 1e3
         )
 
