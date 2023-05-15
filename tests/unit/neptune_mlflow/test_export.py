@@ -22,6 +22,8 @@ from unittest.mock import (
     patch,
 )
 
+import mlflow.tracking
+
 from neptune_mlflow.export import (
     export_project_metadata,
     export_run,
@@ -81,8 +83,10 @@ class MockRun(MagicMock):
     class Data(MagicMock):
         def to_dictionary(self) -> dict:
             return {
-                "metric1": "value1",
-                "metric2": "value2",
+                "metrics": {
+                    "metric1": "value1",
+                    "metric2": "value2",
+                },
             }
 
     @property
@@ -129,10 +133,14 @@ class TestNeptuneExport(unittest.TestCase):
             assert mock_project["ex1/last_updated_time"] == datetime.datetime(2023, 5, 4, 12, 50, 18, 954000)
 
     def test_export_run(self) -> None:
-        with patch("mlflow.entities.Run", MockRun()) as mock_mlflow_run, patch(
-            "neptune.Run", MockNeptuneRun()
+        with patch("mlflow.tracking.MlflowClient.get_metric_history") as mock_get_history, patch(
+            "mlflow.entities.Run", MockRun()
+        ) as mock_mlflow_run, patch(
+            "neptune.Run",
+            MockNeptuneRun(),
         ) as mock_neptune_run:
-            export_run(mock_mlflow_run)
+            mock_get_history.return_value = mock_mlflow_run.data.to_dictionary()
+            export_run(mock_mlflow_run, mlflow.tracking.MlflowClient())
 
             assert mock_neptune_run.storage["run_info/run_id"] == mock_mlflow_run.info.run_id
 
