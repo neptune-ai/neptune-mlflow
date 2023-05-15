@@ -1,0 +1,26 @@
+---
+name: Test E2E
+description: Run e2e tests
+inputs:
+  working_directory:
+    description: "Working directory"
+    required: false
+    default: .
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        repository: neptune-ai/neptune-mlflow
+        path: ${{ inputs.working_directory }}
+
+    - name: Install dependencies
+      working-directory: ${{ inputs.working_directory }}
+      run: pip install -e .[dev]
+      shell: bash
+
+    - name: Run tests
+      working-directory: ${{ inputs.working_directory }}
+      run: pytest -v tests/e2e
+      shell: bash
