@@ -14,7 +14,10 @@
 # limitations under the License.
 #
 from datetime import datetime
-from typing import Set
+from typing import (
+    Optional,
+    Set,
+)
 
 import click
 import mlflow
@@ -35,9 +38,9 @@ except ImportError:
 class NeptuneExporter:
     def __init__(
         self,
-        *,
         project: Project,
-        mlflow_tracking_uri: str,
+        *,
+        mlflow_tracking_uri: Optional[str] = None,
         include_artifacts: bool = False,
         max_artifact_size: int = 50,
     ):
