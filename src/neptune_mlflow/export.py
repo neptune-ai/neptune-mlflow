@@ -22,10 +22,8 @@ from typing import (
 import click
 import mlflow
 import neptune
-from mlflow.entities import Experiment
 from mlflow.entities import Run as MlflowRun
 from mlflow.entities import ViewType
-from mlflow.tracking.artifact_utils import get_artifact_uri
 
 try:
     from neptune import Project
@@ -33,6 +31,11 @@ try:
 except ImportError:
     from neptune.new.metadata_containers import Project
     from neptune.new.metadata_containers import Run as NeptuneRun
+
+from neptune_mlflow.utils import (
+    DirectoryUploadStrategy,
+    FileUploadStrategy,
+)
 
 
 class NeptuneExporter:
@@ -47,7 +50,7 @@ class NeptuneExporter:
         self.project = project
         self.mlflow_tracking_uri = mlflow_tracking_uri
         self.include_artifacts = include_artifacts
-        self.max_artifact_size = max_artifact_size * 2e20  # to bytes
+        self.max_artifact_size = int(max_artifact_size * 2e20)  # to bytes
 
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
         self.mlflow_client = mlflow.tracking.MlflowClient()
@@ -56,11 +59,7 @@ class NeptuneExporter:
 
         experiments = self.mlflow_client.search_experiments()
 
-        experiment_ids = []
-        for experiment in experiments:
-            self._export_project_metadata(experiment)
-
-            experiment_ids.append(experiment.experiment_id)
+        experiment_ids = [experiment.experiment_id for experiment in experiments]
 
         mlflow_runs = self.mlflow_client.search_runs(experiment_ids=experiment_ids, run_view_type=ViewType.ALL)
 
@@ -71,6 +70,7 @@ class NeptuneExporter:
                 click.echo("Loading mlflow_run {}".format(mlflow_run.info.run_name))
                 with neptune.init_run(custom_run_id=mlflow_run.info.run_id) as neptune_run:
 
+                    self._export_experiment_metadata(neptune_run, mlflow_run)
                     self._export_run_info(neptune_run, mlflow_run)
                     self._export_run_data(neptune_run, mlflow_run)
 
@@ -92,18 +92,15 @@ class NeptuneExporter:
 
         return existing_neptune_run_ids
 
-    def _export_project_metadata(self, experiment: Experiment) -> None:
-        self.project[f"{experiment.experiment_id}/experiment_id"] = experiment.experiment_id
-        self.project[f"{experiment.experiment_id}/tags"] = experiment.tags
-        self.project[f"{experiment.experiment_id}/name"] = experiment.name
+    def _export_experiment_metadata(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
+        experiment = self.mlflow_client.get_experiment(experiment_id=mlflow_run.info.experiment_id)
+        neptune_run["experiment/experiment_id"] = experiment.experiment_id
+        neptune_run["experiment/tags"] = experiment.tags
+        neptune_run["experiment/name"] = experiment.name
 
         # https://stackoverflow.com/questions/9744775/how-to-convert-integer-timestamp-into-a-datetime
-        self.project[f"{experiment.experiment_id}/creation_time"] = datetime.fromtimestamp(
-            experiment.creation_time / 1e3
-        )
-        self.project[f"{experiment.experiment_id}/last_update_time"] = datetime.fromtimestamp(
-            experiment.last_update_time / 1e3
-        )
+        neptune_run["experiment/creation_time"] = datetime.fromtimestamp(experiment.creation_time / 1e3)
+        neptune_run["experiment/last_update_time"] = datetime.fromtimestamp(experiment.last_update_time / 1e3)
 
     @staticmethod
     def _export_run_info(neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
@@ -138,8 +135,15 @@ class NeptuneExporter:
 
     def _export_artifacts(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
         for artifact in self.mlflow_client.list_artifacts(run_id=mlflow_run.info.run_id):
-            if artifact.is_dir or artifact.file_size > self.max_artifact_size:
-                continue
-            path = artifact.path
-            uri = get_artifact_uri(run_id=mlflow_run.info.run_id, artifact_path=path)
-            neptune_run[path].track_files(uri)
+            if artifact.is_dir:
+                strategy = DirectoryUploadStrategy(
+                    tracking_uri=self.mlflow_tracking_uri,
+                    max_file_size=self.max_artifact_size,
+                )
+            else:
+                strategy = FileUploadStrategy(
+                    tracking_uri=self.mlflow_tracking_uri,
+                    max_file_size=self.max_artifact_size,
+                )
+
+            strategy.upload_artifact(neptune_run, artifact, mlflow_run.info.run_id)

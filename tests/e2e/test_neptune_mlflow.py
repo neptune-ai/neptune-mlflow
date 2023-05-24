@@ -85,4 +85,4 @@ def test_e2e(dataset, model, neptune_exporter_e2e):
     assert int(neptune_run["run_data/params/batch_size"].fetch()) == BATCH_SIZE
 
     # logged artifacts
-    assert neptune_run.exists("model_summary.txt")
+    assert neptune_run.exists("artifacts/model_summary.txt")
