@@ -58,16 +58,16 @@ def test_e2e(dataset, model, neptune_exporter_e2e):
     neptune_exporter_e2e.run()
 
     # check logged project metadata
-    project = neptune.init_project()
     experiment = mlflow.get_experiment_by_name("E2E neptune experiment")
-
-    assert project.exists(experiment.experiment_id)
-    assert project[f"{experiment.experiment_id}/name"].fetch() == MLFLOW_EXPERIMENT_NAME
-    assert project.exists(f"{experiment.experiment_id}/creation_time")
-    assert project.exists(f"{experiment.experiment_id}/last_update_time")
 
     # check logged run metadata
     neptune_run = neptune.init_run(custom_run_id=run_id)
+
+    # experiment
+    assert neptune_run["experiment/experiment_id"].fetch() == experiment.experiment_id
+    assert neptune_run["experiment/name"].fetch() == MLFLOW_EXPERIMENT_NAME
+    assert neptune_run.exists("experiment/creation_time")
+    assert neptune_run.exists("experiment/last_update_time")
 
     # run info
     assert neptune_run["run_info/lifecycle_stage"].fetch() == "active"
