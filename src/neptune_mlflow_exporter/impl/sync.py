@@ -18,7 +18,7 @@ from typing import Optional
 
 import neptune
 
-from neptune_mlflow_exporter import NeptuneExporter
+from neptune_mlflow_exporter.impl import NeptuneExporter
 
 
 def sync(

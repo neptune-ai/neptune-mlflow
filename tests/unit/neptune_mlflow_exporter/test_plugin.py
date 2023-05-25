@@ -24,7 +24,7 @@ from neptune_mlflow_exporter import sync
 class TestPlugin(unittest.TestCase):
     runner = CliRunner()
 
-    @patch("neptune_mlflow_exporter.sync.sync")
+    @patch("neptune_mlflow_exporter.impl.sync.sync")
     def test_sync_called_once(self, mock_sync):
         result = self.runner.invoke(sync)
 

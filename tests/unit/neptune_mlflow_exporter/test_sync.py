@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from neptune_mlflow_exporter.sync import sync
+from neptune_mlflow_exporter.impl.sync import sync
 
 
 def test_invalid_max_artifact_size() -> None:
