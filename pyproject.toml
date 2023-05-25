@@ -65,7 +65,7 @@ keywords = [
     "ML Metadata Store",
 ]
 packages = [
-    { include = "neptune_mlflow", from = "src" },
+    { include = "neptune_mlflow_exporter", from = "src" },
 ]
 
 [tool.poetry.urls]
@@ -97,4 +97,4 @@ max-line-length = 120
 extend-ignore = "E203"
 
 [tool.poetry.plugins."neptune.plugins"]
-"mlflow" = "neptune_mlflow:sync"
+"mlflow" = "neptune_mlflow_exporter:sync"
