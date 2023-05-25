@@ -10,7 +10,7 @@ except ImportError:
 import pytest
 import tensorflow as tf
 
-from neptune_mlflow import NeptuneExporter
+from neptune_mlflow_exporter import NeptuneExporter
 
 
 @pytest.fixture(scope="session")

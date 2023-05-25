@@ -18,13 +18,13 @@ from unittest.mock import patch
 
 from click.testing import CliRunner
 
-from neptune_mlflow_plugin import sync
+from neptune_mlflow_exporter import sync
 
 
 class TestPlugin(unittest.TestCase):
     runner = CliRunner()
 
-    @patch("neptune_mlflow.sync.sync")
+    @patch("neptune_mlflow_exporter.sync.sync")
     def test_sync_called_once(self, mock_sync):
         result = self.runner.invoke(sync)
 

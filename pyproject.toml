@@ -97,4 +97,4 @@ max-line-length = 120
 extend-ignore = "E203"
 
 [tool.poetry.plugins."neptune.plugins"]
-"mlflow" = "neptune_mlflow_plugin:sync"
+"mlflow" = "neptune_mlflow:sync"

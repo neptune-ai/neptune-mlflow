@@ -32,7 +32,7 @@ except ImportError:
     from neptune.new.metadata_containers import Project
     from neptune.new.metadata_containers import Run as NeptuneRun
 
-from neptune_mlflow.utils import (
+from neptune_mlflow_exporter.utils import (
     DirectoryUploadStrategy,
     FileUploadStrategy,
 )

@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+__all__ = ["NeptuneExporter", "sync"]
 
 import click
+
+from neptune_mlflow_exporter.export import NeptuneExporter
 
 
 @click.command("mlflow")
@@ -52,7 +55,7 @@ def sync(project: str, api_token: str, mlflow_tracking_uri: str, include_artifac
     """
 
     # We do not want to import anything if process was executed for autocompletion purposes.
-    from neptune_mlflow.sync import sync as run_sync
+    from neptune_mlflow_exporter.sync import sync as run_sync
 
     return run_sync(
         project_name=project,
