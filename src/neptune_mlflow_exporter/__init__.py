@@ -25,8 +25,8 @@ from neptune_mlflow_exporter.export import NeptuneExporter
 @click.option("--api-token", "-a", help="Your Neptune API Key", required=False, type=str)
 @click.option("--mlflow-tracking-uri", "-u", help="Your MLflow tracking URI", required=False, type=str)
 @click.option(
-    "--include-artifacts",
-    "-i",
+    "--exclude-artifacts",
+    "-e",
     help="Specifies whether to also include artifacts in the upload",
     required=False,
     default=False,
@@ -40,7 +40,7 @@ from neptune_mlflow_exporter.export import NeptuneExporter
     default=50,
     type=int,
 )
-def sync(project: str, api_token: str, mlflow_tracking_uri: str, include_artifacts: bool, max_artifact_size: int):
+def sync(project: str, api_token: str, mlflow_tracking_uri: str, exclude_artifacts: bool, max_artifact_size: int):
     """Upload mlflow runs data to Neptune.
     PATH is a directory where Neptune will look for `mlruns` directory with mlflow data.
 
@@ -61,6 +61,6 @@ def sync(project: str, api_token: str, mlflow_tracking_uri: str, include_artifac
         project_name=project,
         api_token=api_token,
         mlflow_tracking_uri=mlflow_tracking_uri,
-        include_artifacts=include_artifacts,
+        exclude_artifacts=exclude_artifacts,
         max_artifact_size=max_artifact_size,
     )

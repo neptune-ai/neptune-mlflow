@@ -44,12 +44,12 @@ class NeptuneExporter:
         project: Project,
         *,
         mlflow_tracking_uri: Optional[str] = None,
-        include_artifacts: bool = False,
+        exclude_artifacts: bool = False,
         max_artifact_size: int = 50,
     ):
         self.project = project
         self.mlflow_tracking_uri = mlflow_tracking_uri
-        self.include_artifacts = include_artifacts
+        self.exclude_artifacts = exclude_artifacts
         self.max_artifact_size = int(max_artifact_size * 2e20)  # to bytes
 
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
@@ -74,7 +74,7 @@ class NeptuneExporter:
                     self._export_run_info(neptune_run, mlflow_run)
                     self._export_run_data(neptune_run, mlflow_run)
 
-                    if self.include_artifacts:
+                    if not self.exclude_artifacts:
                         self._export_artifacts(neptune_run, mlflow_run)
 
                         click.echo("Run {} was saved".format(mlflow_run.info.run_name))

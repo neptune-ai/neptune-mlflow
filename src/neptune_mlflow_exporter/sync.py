@@ -25,7 +25,7 @@ def sync(
     project_name: Optional[str] = None,
     api_token: Optional[str] = None,
     mlflow_tracking_uri: Optional[str] = None,
-    include_artifacts: bool = False,
+    exclude_artifacts: bool = True,
     max_artifact_size: int = 50,
 ) -> None:
 
@@ -45,6 +45,6 @@ def sync(
     NeptuneExporter(
         project=project,
         mlflow_tracking_uri=mlflow_tracking_uri,
-        include_artifacts=include_artifacts,
+        exclude_artifacts=exclude_artifacts,
         max_artifact_size=max_artifact_size,
     ).run()

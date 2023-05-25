@@ -57,4 +57,4 @@ def neptune_exporter(neptune_project) -> NeptuneExporter:
 @pytest.fixture(scope="session")
 def neptune_exporter_e2e() -> NeptuneExporter:
     project = init_project()
-    yield NeptuneExporter(project, include_artifacts=True)
+    yield NeptuneExporter(project, exclude_artifacts=False)

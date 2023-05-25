@@ -31,7 +31,7 @@ class TestPlugin(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
 
         mock_sync.assert_called_once_with(
-            project_name=None, api_token=None, mlflow_tracking_uri=None, include_artifacts=False, max_artifact_size=50
+            project_name=None, api_token=None, mlflow_tracking_uri=None, exclude_artifacts=False, max_artifact_size=50
         )
 
     def test_invalid_max_artifact_size(self):
