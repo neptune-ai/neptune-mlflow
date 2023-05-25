@@ -41,17 +41,19 @@ from neptune_mlflow_exporter.export import NeptuneExporter
     type=int,
 )
 def sync(project: str, api_token: str, mlflow_tracking_uri: str, exclude_artifacts: bool, max_artifact_size: int):
-    """Upload mlflow runs data to Neptune.
-    PATH is a directory where Neptune will look for `mlruns` directory with mlflow data.
+    """Export MLflow runs to Neptune.ai.
 
-    Examples:
-
-        neptune mlflow .
-
-        neptune mlflow /path
-
-        neptune mlflow /path --project username/sandbox
-
+    Args:
+        project: name of the Neptune project where your MLflow runs will go.
+            If not provided, NEPTUNE_PROJECT env variable will be used.
+        api_token: your Neptune api token.
+            If not provided, NEPTUNE_API_TOKEN env variable will be used.
+        mlflow_tracking_uri: your MLflow tracking URI.
+            If not provided, it is left to the MLflow client to resolve it.
+        exclude_artifacts: whether to also upload the artifacts to Neptune.
+        max_artifact_size: max size of the artifact to be uploaded to Neptune.
+            Unit is in Mb.
+            For directories this will be treated as the max size of the entire directory.
     """
 
     # We do not want to import anything if process was executed for autocompletion purposes.
