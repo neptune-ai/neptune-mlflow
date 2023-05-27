@@ -37,12 +37,12 @@ import click
     type=int,
 )
 def sync(project: str, api_token: str, mlflow_tracking_uri: str, exclude_artifacts: bool, max_artifact_size: int):
-    """Export MLflow runs to Neptune.ai.
+    """Exports MLflow runs to neptune.ai.
 
     Args:
         project: name of the Neptune project where your MLflow runs will go.
             If not provided, NEPTUNE_PROJECT env variable will be used.
-        api_token: your Neptune api token.
+        api_token: your Neptune API token.
             If not provided, NEPTUNE_API_TOKEN env variable will be used.
         mlflow_tracking_uri: your MLflow tracking URI.
             If not provided, it is left to the MLflow client to resolve it.
