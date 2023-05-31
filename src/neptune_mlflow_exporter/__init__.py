@@ -46,9 +46,9 @@ def sync(project: str, api_token: str, mlflow_tracking_uri: str, exclude_artifac
             If not provided, NEPTUNE_API_TOKEN env variable will be used.
         mlflow_tracking_uri: your MLflow tracking URI.
             If not provided, it is left to the MLflow client to resolve it.
-        exclude_artifacts: whether to also upload the artifacts to Neptune.
+        exclude_artifacts: whether to skip uploading artifacts to Neptune.
         max_artifact_size: max size of the artifact to be uploaded to Neptune.
-            Unit is in Mb.
+            Unit is in MB.
             For directories this will be treated as the max size of the entire directory.
     """
 

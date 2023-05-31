@@ -69,7 +69,7 @@ packages = [
 ]
 
 [tool.poetry.urls]
-"Tracker" = "https://github.com/neptune-ai/neptune_mlflow/issues"
+"Tracker" = "https://github.com/neptune-ai/neptune-mlflow/issues"
 "Documentation" = "https://docs.neptune.ai/integrations/mlflow/"
 
 [tool.black]
