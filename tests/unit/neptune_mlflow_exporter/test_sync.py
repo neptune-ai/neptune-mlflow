@@ -16,7 +16,9 @@ def test_invalid_max_artifact_size() -> None:
         sync(max_artifact_size=50.5)
 
 
-def test_init_project_called_once() -> None:
-    with patch("neptune.init_project") as mock_init_project:
-        sync()
-        mock_init_project.assert_called_once_with()
+@patch("neptune.init_project")
+@patch("mlflow.tracking.MlflowClient")
+def test_init_project_and_mlflow_client_called_once(mock_client, mock_init_project) -> None:
+    sync()
+    mock_init_project.assert_called_once_with()
+    mock_client.assert_called_once_with()
