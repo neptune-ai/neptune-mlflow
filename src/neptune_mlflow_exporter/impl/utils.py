@@ -44,10 +44,10 @@ class ArtifactUploadStrategy(ABC):
 
 class FileUploadStrategy(ArtifactUploadStrategy):
     def upload_artifact(self, neptune_run: Run, info: FileInfo, run_id: str) -> None:
-        if info.file_size > self._max_size:
+        if info.is_dir or info.file_size > self._max_size:
             return
 
-        local_path = ""
+        local_path = None
         try:
             local_path = self._download_artifacts(run_id=run_id, path=info.path)
             local_path = Path(local_path).name
@@ -55,7 +55,7 @@ class FileUploadStrategy(ArtifactUploadStrategy):
             neptune_run.wait()
 
         finally:
-            if local_path:
+            if local_path and os.path.isfile(local_path):
                 os.remove(local_path)
 
 
@@ -71,6 +71,8 @@ class DirectoryUploadStrategy(ArtifactUploadStrategy):
         return total
 
     def upload_artifact(self, neptune_run: Run, info: FileInfo, run_id: str) -> None:
+        if not info.is_dir:
+            return
 
         # download directory first and then check the size
         local_path = None
