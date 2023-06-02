@@ -73,7 +73,7 @@ class DirectoryUploadStrategy(ArtifactUploadStrategy):
     def upload_artifact(self, neptune_run: Run, info: FileInfo, run_id: str) -> None:
 
         # download directory first and then check the size
-        local_path = ""
+        local_path = None
         try:
             local_path = self._download_artifacts(run_id=run_id, path=info.path)
 
@@ -85,4 +85,5 @@ class DirectoryUploadStrategy(ArtifactUploadStrategy):
             neptune_run.wait()
 
         finally:
-            shutil.rmtree(local_path)
+            if local_path and os.path.isdir(local_path):
+                shutil.rmtree(local_path)
