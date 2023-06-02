@@ -14,7 +14,11 @@ from pathlib import Path
 
 from mlflow.artifacts import download_artifacts
 from mlflow.entities import FileInfo
-from neptune import Run
+
+try:
+    from neptune import Run
+except ImportError:
+    from neptune.new.metadata_containers import Run
 
 
 class ArtifactUploadStrategy(ABC):
