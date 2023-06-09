@@ -1,10 +1,13 @@
+from neptune_mlflow_plugin import MlflowPlugin
+
 try:
     from neptune import (
         Project,
         init_project,
+        init_run,
     )
 except ImportError:
-    from neptune.new import init_project
+    from neptune.new import init_project, init_run
     from neptune.new.metadata_containers import Project
 
 import pytest
@@ -58,3 +61,11 @@ def neptune_exporter(neptune_project) -> NeptuneExporter:
 def neptune_exporter_e2e() -> NeptuneExporter:
     project = init_project()
     yield NeptuneExporter(project, exclude_artifacts=False)
+
+
+@pytest.fixture(scope="session")
+def mlflow() -> MlflowPlugin:
+    with init_run(mode="debug") as run:
+        yield MlflowPlugin(
+            neptune_run=run,
+        )
