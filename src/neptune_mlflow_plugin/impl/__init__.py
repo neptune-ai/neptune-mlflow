@@ -3,6 +3,7 @@ from collections.abc import Mapping
 from typing import (
     Any,
     Optional,
+    Set,
     Union,
 )
 
@@ -15,6 +16,14 @@ from mlflow.entities import (
 from neptune import Run as NeptuneRun
 from neptune import init_run
 from neptune.handler import Handler
+
+
+def _to_neptune_tags(tags: Mapping[str, Any]) -> Set[Any]:
+    neptune_tags = set()
+    for _, v in tags.items():
+        neptune_tags.add(v)
+
+    return neptune_tags
 
 
 class MlflowPlugin:
@@ -34,6 +43,7 @@ class MlflowPlugin:
                 project=project,
             )
 
+        self._base_namespace = base_namespace
         self._base_handler = self._neptune_run[base_namespace]
         self._mlflow_client = mlflow.tracking.MlflowClient()
 
@@ -48,9 +58,8 @@ class MlflowPlugin:
     def create_experiment(
         self, name: str, artifact_location: Optional[str] = None, tags: Optional[Mapping[str, Any]] = None
     ) -> str:
-        neptune_tags = set()
-        for _, v in tags.items():
-            neptune_tags.add(v)
+        neptune_tags = _to_neptune_tags(tags)
+        self._base_handler["experiment/tags"].add(neptune_tags)
 
         self._base_handler["experiment/name"] = name
 
@@ -63,7 +72,18 @@ class MlflowPlugin:
         return experiment_id
 
     def set_experiment(self, experiment_name: Optional[str] = None, experiment_id: Optional[str] = None) -> Experiment:
-        ...
+        mlflow_experiment = mlflow.set_experiment(experiment_name, experiment_id)
+
+        if (
+            not self._neptune_run.exists(f"{self._base_namespace}/experiment")
+            or self._base_handler["experiment/experiment_id"].fetch() != experiment_id
+        ):
+
+            self._base_handler["experiment/tags"].add(_to_neptune_tags(mlflow_experiment.tags))
+            self._base_handler["experiment/name"] = experiment_name
+            self._base_handler["experiment/experiment_id"] = experiment_id
+            self._base_handler["experiment/creation_time"] = mlflow_experiment.creation_time
+            self._base_handler["experiment/last_update_time"] = mlflow_experiment.last_update_time
 
     def start_run(
         self,

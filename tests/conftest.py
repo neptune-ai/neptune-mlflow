@@ -1,8 +1,11 @@
+from unittest.mock import MagicMock
+
 from neptune_mlflow_plugin import MlflowPlugin
 
 try:
     from neptune import (
         Project,
+        Run,
         init_project,
         init_run,
     )
@@ -64,8 +67,22 @@ def neptune_exporter_e2e() -> NeptuneExporter:
 
 
 @pytest.fixture(scope="session")
-def mlflow() -> MlflowPlugin:
+def neptune_run() -> Run:
     with init_run(mode="debug") as run:
-        yield MlflowPlugin(
-            neptune_run=run,
-        )
+        yield run
+
+
+@pytest.fixture(scope="session")
+def mlflow(neptune_run) -> MlflowPlugin:
+    return MlflowPlugin(
+        neptune_run=neptune_run,
+    )
+
+
+@pytest.fixture(scope="session")
+def mock_experiment() -> MagicMock():
+    mock_experiment = MagicMock()
+    mock_experiment.creation_time = "some_creation_time"
+    mock_experiment.last_update_time = "some_update_time"
+    mock_experiment.tags = {"tag1": "val1"}
+    return mock_experiment

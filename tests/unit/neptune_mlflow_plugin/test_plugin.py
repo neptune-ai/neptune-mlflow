@@ -3,6 +3,8 @@ from unittest.mock import (
     patch,
 )
 
+from neptune import init_run
+
 from neptune_mlflow_plugin import MlflowPlugin
 
 
@@ -41,14 +43,11 @@ def test_get_tracking_uri(mlflow: MlflowPlugin):
         mock_mlflow.get_tracking_uri.assert_called_once()
 
 
-def test_create_experiment(mlflow: MlflowPlugin):
-    mock_experiment = MagicMock()
-    mock_experiment.creation_time = "some_creation_time"
-    mock_experiment.last_update_time = "some_update_time"
-
+def test_create_experiment(mlflow: MlflowPlugin, mock_experiment):
     with patch(
         "neptune_mlflow_plugin.impl.mlflow.tracking.MlflowClient.get_experiment", return_value=mock_experiment
     ) as mock_get_experiment:
+
         with patch("mlflow.create_experiment", return_value="test_id") as mock_create_experiment:
             experiment_id = mlflow.create_experiment(
                 "test_experiment", artifact_location="some_location", tags={"tag1": "val1"}
@@ -58,6 +57,24 @@ def test_create_experiment(mlflow: MlflowPlugin):
 
             assert experiment_id == "test_id"
 
+            assert mlflow._neptune_run["mlflow/experiment/tags"].fetch() == {"val1"}
+            assert mlflow._neptune_run["mlflow/experiment/name"].fetch() == "test_experiment"
+            assert mlflow._neptune_run["mlflow/experiment/experiment_id"].fetch() == "test_id"
+            assert mlflow._neptune_run["mlflow/experiment/creation_time"].fetch() == "some_creation_time"
+            assert mlflow._neptune_run["mlflow/experiment/last_update_time"].fetch() == "some_update_time"
+
+
+def test_set_experiment(mock_experiment):
+    with init_run(mode="debug") as run:
+        mlflow = MlflowPlugin(run)
+        with patch("neptune_mlflow_plugin.impl.mlflow") as mock_mlflow:
+            mock_mlflow.set_experiment.return_value = mock_experiment
+
+            mlflow.set_experiment("test_experiment", "test_id")
+
+            mock_mlflow.set_experiment.assert_called_once_with("test_experiment", "test_id")
+
+            assert mlflow._neptune_run["mlflow/experiment/tags"].fetch() == {"val1"}
             assert mlflow._neptune_run["mlflow/experiment/name"].fetch() == "test_experiment"
             assert mlflow._neptune_run["mlflow/experiment/experiment_id"].fetch() == "test_id"
             assert mlflow._neptune_run["mlflow/experiment/creation_time"].fetch() == "some_creation_time"
