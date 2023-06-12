@@ -109,11 +109,13 @@ class MlflowPlugin:
         if self._neptune_run.exists(f"{self._base_namespace}/run/{run_id}"):
             self._base_handler[f"run/{run_id}/status"] = status
 
-    def active_run(self) -> Optional[ActiveRun]:
-        ...
+    @staticmethod
+    def active_run() -> Optional[ActiveRun]:
+        return mlflow.active_run()
 
-    def last_active_run(self) -> Optional[Run]:
-        ...
+    @staticmethod
+    def last_active_run() -> Optional[Run]:
+        return mlflow.last_active_run()
 
     def log_param(self, key: str, value: Any) -> Any:
         ...

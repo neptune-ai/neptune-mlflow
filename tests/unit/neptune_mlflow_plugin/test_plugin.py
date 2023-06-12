@@ -116,3 +116,15 @@ def test_end_run(mlflow: MlflowPlugin):
         mock_mlflow.end_run.assert_called_once_with(status)
 
         assert mlflow._neptune_run["mlflow/run/test_run_id/status"].fetch() == status
+
+
+def test_active_run(mlflow: MlflowPlugin):
+    with patch("neptune_mlflow_plugin.impl.mlflow") as mock_mlflow:
+        mlflow.active_run()
+        mock_mlflow.active_run.assert_called_once()
+
+
+def test_last_active_run(mlflow: MlflowPlugin):
+    with patch("neptune_mlflow_plugin.impl.mlflow") as mock_mlflow:
+        mlflow.last_active_run()
+        mock_mlflow.last_active_run.assert_called_once()
