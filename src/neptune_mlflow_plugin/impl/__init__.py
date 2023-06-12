@@ -94,10 +94,20 @@ class MlflowPlugin:
         tags: Optional[Mapping[str, Any]] = None,
         description: Optional[str] = None,
     ) -> ActiveRun:
-        ...
+        mlflow_run = mlflow.start_run(run_id, experiment_id, run_name, nested, tags, description)
+
+        if tags:
+            neptune_tags = _to_neptune_tags(tags)
+            self._base_handler[f"run/{run_id}/tags"].add(neptune_tags)
+
+        self._base_handler[f"run/{run_id}/status"] = mlflow_run.info.status
+        return mlflow_run
 
     def end_run(self, status: str = "FINISHED") -> None:
-        ...
+        run_id = mlflow.active_run().info.run_id
+        mlflow.end_run(status)
+        if self._neptune_run.exists(f"{self._base_namespace}/run/{run_id}"):
+            self._base_handler[f"run/{run_id}/status"] = status
 
     def active_run(self) -> Optional[ActiveRun]:
         ...

@@ -79,3 +79,40 @@ def test_set_experiment(mock_experiment):
             assert mlflow._neptune_run["mlflow/experiment/experiment_id"].fetch() == "test_id"
             assert mlflow._neptune_run["mlflow/experiment/creation_time"].fetch() == "some_creation_time"
             assert mlflow._neptune_run["mlflow/experiment/last_update_time"].fetch() == "some_update_time"
+
+
+def test_start_run(mlflow: MlflowPlugin):
+    mlflow_run = MagicMock()
+    mlflow_run.info.status = "RUNNING"
+    with patch("neptune_mlflow_plugin.impl.mlflow") as mock_mlflow:
+        mock_mlflow.start_run.return_value = mlflow_run
+        mlflow.start_run("test_run_id", "test_experiment_id", tags={"tag1": "val1"})
+        mock_mlflow.start_run.assert_called_once_with(
+            "test_run_id",
+            "test_experiment_id",
+            None,
+            False,
+            {"tag1": "val1"},
+            None,
+        )
+
+        assert mlflow._neptune_run["mlflow/run/test_run_id/tags"].fetch() == {"val1"}
+        assert mlflow._neptune_run["mlflow/run/test_run_id/status"].fetch() == "RUNNING"
+
+
+def test_end_run(mlflow: MlflowPlugin):
+    status = "TEST_STATUS_FINISHED"
+    mlflow_run = MagicMock()
+    mlflow_run.info.status = "RUNNING"
+    mlflow_run.info.run_id = "test_run_id"
+
+    with patch("neptune_mlflow_plugin.impl.mlflow") as mock_mlflow:
+        mock_mlflow.start_run.return_value = mlflow_run
+        mock_mlflow.active_run.return_value = mlflow_run
+        mlflow.start_run("test_run_id", "test_experiment_id", tags={"tag1": "val1"})
+
+        mlflow.end_run(status)
+
+        mock_mlflow.end_run.assert_called_once_with(status)
+
+        assert mlflow._neptune_run["mlflow/run/test_run_id/status"].fetch() == status
