@@ -86,3 +86,5 @@ def test_e2e(dataset, model, neptune_exporter_e2e):
 
     # logged artifacts
     assert neptune_run.exists("artifacts/model_summary.txt")
+    assert neptune_run.exists("artifacts/keras-model")
+    assert neptune_run.exists("artifacts/tensorboard_logs")
