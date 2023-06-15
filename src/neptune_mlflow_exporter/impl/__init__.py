@@ -17,4 +17,4 @@
 __all__ = ["NeptuneExporter", "__version__"]
 
 from neptune_mlflow_exporter.impl.export import NeptuneExporter
-from neptune_mlflow_exporter.impl.version import __version__
+from neptune_mlflow_exporter.version import __version__
