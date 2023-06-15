@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019, Neptune Labs Sp. z o.o.
+# Copyright (c) 2023, Neptune Labs Sp. z o.o.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 from typing import Optional
 
-import neptune
+try:
+    from neptune import init_project
+except ImportError:
+    from neptune.new import init_project
 
 from neptune_mlflow_exporter.impl import NeptuneExporter
 
@@ -25,7 +27,7 @@ def sync(
     project_name: Optional[str] = None,
     api_token: Optional[str] = None,
     mlflow_tracking_uri: Optional[str] = None,
-    exclude_artifacts: bool = True,
+    exclude_artifacts: bool = False,
     max_artifact_size: int = 50,
 ) -> None:
 
@@ -35,16 +37,12 @@ def sync(
     if max_artifact_size <= 0:
         raise ValueError("Max artifact size must be a positive integer")
 
-    if project_name:
-        os.environ["NEPTUNE_PROJECT"] = project_name
-    if api_token:
-        os.environ["NEPTUNE_API_KEY"] = api_token
-
-    project = neptune.init_project()
-
-    NeptuneExporter(
-        project=project,
-        mlflow_tracking_uri=mlflow_tracking_uri,
-        exclude_artifacts=exclude_artifacts,
-        max_artifact_size=max_artifact_size,
-    ).run()
+    with init_project(project=project_name, api_token=api_token) as project:
+        NeptuneExporter(
+            project=project,
+            project_name=project_name,
+            api_token=api_token,
+            mlflow_tracking_uri=mlflow_tracking_uri,
+            exclude_artifacts=exclude_artifacts,
+            max_artifact_size=max_artifact_size,
+        ).run()
