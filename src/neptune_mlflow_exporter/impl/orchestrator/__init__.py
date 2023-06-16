@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 
-__all__ = ["NeptuneExporter", "__version__"]
+__all__ = ["ExportOrchestrator"]
 
-from neptune_mlflow_exporter.impl.neptune_exporter import NeptuneExporter
-from neptune_mlflow_exporter.impl.version import __version__
+from neptune_mlflow_exporter.impl.orchestrator.orchestrator import ExportOrchestrator

@@ -14,7 +14,14 @@
 # limitations under the License.
 #
 
-__all__ = ["NeptuneExporter", "__version__"]
+__all__ = [
+    "ArtifactUploadStrategy",
+    "FileUploadStrategy",
+    "DirectoryUploadStrategy",
+]
 
-from neptune_mlflow_exporter.impl.neptune_exporter import NeptuneExporter
-from neptune_mlflow_exporter.impl.version import __version__
+from neptune_mlflow_exporter.impl.strategies.artifact_strategy import (
+    ArtifactUploadStrategy,
+    DirectoryUploadStrategy,
+    FileUploadStrategy,
+)

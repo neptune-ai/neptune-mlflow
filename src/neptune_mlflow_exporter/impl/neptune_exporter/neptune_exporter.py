@@ -47,8 +47,7 @@ class NeptuneExporter:
         self.mlflow_tracking_uri = mlflow_tracking_uri
         self.exclude_artifacts = exclude_artifacts
         self.max_artifact_size = int(max_artifact_size * (1024 * 1024))  # to bytes
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-        self.mlflow_client = mlflow.tracking.MlflowClient()
+        self.mlflow_client = mlflow.tracking.MlflowClient(tracking_uri=self.mlflow_tracking_uri)
 
     def run(self) -> None:
         ExportOrchestrator(

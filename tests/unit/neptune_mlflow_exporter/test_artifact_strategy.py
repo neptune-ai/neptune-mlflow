@@ -6,13 +6,13 @@ from unittest.mock import (
 
 from mlflow.entities import FileInfo
 
-from neptune_mlflow_exporter.impl.artifact_strategy import (
+from neptune_mlflow_exporter.impl.strategies import (
     DirectoryUploadStrategy,
     FileUploadStrategy,
 )
 
 
-@patch("neptune_mlflow_exporter.impl.artifact_strategy.ArtifactUploadStrategy._download_artifacts")
+@patch("neptune_mlflow_exporter.impl.strategies.ArtifactUploadStrategy._download_artifacts")
 def test_file_upload_strategy_does_nothing_for_dir(mock_download_artifacts):
     strategy = FileUploadStrategy(tracking_uri="", max_file_size=5000)
     file_info = FileInfo("some_path", True, None)
@@ -24,7 +24,7 @@ def test_file_upload_strategy_does_nothing_for_dir(mock_download_artifacts):
     mock_download_artifacts.assert_not_called()
 
 
-@patch("neptune_mlflow_exporter.impl.artifact_strategy.ArtifactUploadStrategy._download_artifacts")
+@patch("neptune_mlflow_exporter.impl.strategies.ArtifactUploadStrategy._download_artifacts")
 def test_file_upload_strategy_does_not_upload_file_above_limit_size(mock_download_artifacts):
     strategy = FileUploadStrategy(tracking_uri="", max_file_size=500)
     file_info = FileInfo("some_path", False, 1000)
@@ -36,7 +36,7 @@ def test_file_upload_strategy_does_not_upload_file_above_limit_size(mock_downloa
     mock_download_artifacts.assert_not_called()
 
 
-@patch("neptune_mlflow_exporter.impl.artifact_strategy.ArtifactUploadStrategy._download_artifacts")
+@patch("neptune_mlflow_exporter.impl.strategies.ArtifactUploadStrategy._download_artifacts")
 def test_directory_upload_strategy_does_nothing_for_file(mock_download_artifacts):
     strategy = DirectoryUploadStrategy(tracking_uri="", max_file_size=5000)
     file_info = FileInfo("some_path", False, 100)
@@ -48,8 +48,8 @@ def test_directory_upload_strategy_does_nothing_for_file(mock_download_artifacts
     mock_download_artifacts.assert_not_called()
 
 
-@patch("neptune_mlflow_exporter.impl.artifact_strategy.ArtifactUploadStrategy._download_artifacts")
-@patch("neptune_mlflow_exporter.impl.artifact_strategy.get_dir_size", return_value=1000)
+@patch("neptune_mlflow_exporter.impl.strategies.ArtifactUploadStrategy._download_artifacts")
+@patch("neptune_mlflow_exporter.impl.strategies.artifact_strategy.get_dir_size", return_value=1000)
 def test_directory_upload_strategy_does_not_upload_dir_above_limit_size(mock_get_dir_size, mock_download_artifacts):
     strategy = DirectoryUploadStrategy(tracking_uri="", max_file_size=500)
     file_info = FileInfo("some_path", True, None)

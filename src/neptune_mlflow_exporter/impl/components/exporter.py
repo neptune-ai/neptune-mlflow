@@ -28,7 +28,7 @@ try:
 except ImportError:
     from neptune.new.metadata_containers import Run as NeptuneRun
 
-from neptune_mlflow_exporter.impl.artifact_strategy import (
+from neptune_mlflow_exporter.impl.strategies import (
     DirectoryUploadStrategy,
     FileUploadStrategy,
 )
