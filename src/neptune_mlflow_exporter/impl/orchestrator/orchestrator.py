@@ -42,13 +42,17 @@ class ExportOrchestrator:
         self.config = config
 
     def _fetch_runs(self) -> List[MlflowRun]:
-        experiments = self.fetcher.get_all_mlflow_experiments()
+        try:
+            experiments = self.fetcher.get_all_mlflow_experiments()
 
-        experiment_ids = [experiment.experiment_id for experiment in experiments]
+            experiment_ids = [experiment.experiment_id for experiment in experiments]
 
-        mlflow_runs = self.fetcher.get_all_mlflow_runs(experiment_ids)
+            mlflow_runs = self.fetcher.get_all_mlflow_runs(experiment_ids)
 
-        return mlflow_runs
+            return mlflow_runs
+        except Exception as e:
+            click.echo(f"Error during mlflow data fetching: {e}")
+            return []
 
     def _export_data(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
         self.exporter.export_experiment_metadata(neptune_run, mlflow_run)
@@ -66,15 +70,17 @@ class ExportOrchestrator:
 
         for mlflow_run in mlflow_runs:
             if mlflow_run.info.run_id in existing_neptune_run_ids:
-                click.echo(f"Ignoring mlflow_run {mlflow_run.info.run_name} since it already exists")
+                click.echo(f"Ignoring mlflow_run '{mlflow_run.info.run_name}' since it already exists")
                 continue
 
-            click.echo(f"Loading mlflow_run {mlflow_run.info.run_name}")
+            click.echo(f"Loading mlflow_run '{mlflow_run.info.run_name}'")
 
             with NeptuneRun(
                 project=self.config.project_name, api_token=self.config.api_token, custom_run_id=mlflow_run.info.run_id
             ) as neptune_run:
+                try:
+                    self._export_data(neptune_run, mlflow_run)
 
-                self._export_data(neptune_run, mlflow_run)
-
-                click.echo(f"Run {mlflow_run.info.run_name} was saved")
+                    click.echo(f"Run '{mlflow_run.info.run_name}' was saved")
+                except Exception as e:
+                    click.echo(f"Error exporting run '{mlflow_run.info.run_name}': {e}")
