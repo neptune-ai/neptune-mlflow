@@ -14,7 +14,6 @@ from mlflow.entities import (
     Run,
 )
 from neptune import Run as NeptuneRun
-from neptune import init_run
 from neptune.handler import Handler
 
 
@@ -29,26 +28,22 @@ def _to_neptune_tags(tags: Mapping[str, Any]) -> Set[Any]:
 class MlflowPlugin:
     def __init__(
         self,
-        neptune_run: Optional[Union[NeptuneRun, Handler]] = None,
         *,
         api_token: Optional[str] = None,
         project: Optional[str] = None,
         base_namespace: str = "mlflow",
     ) -> None:
-        self._neptune_run = neptune_run
-
-        if not self._neptune_run:
-            self._neptune_run = init_run(
-                api_token=api_token,
-                project=project,
-            )
+        self.api_token = api_token
+        self.project = project
+        self._neptune_run: Optional[NeptuneRun] = None
+        self._base_handler: Optional[Handler] = None
 
         self._base_namespace = base_namespace
-        self._base_handler = self._neptune_run[base_namespace]
         self._mlflow_client = mlflow.tracking.MlflowClient()
 
     def set_tracking_uri(self, uri: Union[str, os.PathLike]) -> None:
-        self._base_handler["tracking_uri"] = uri
+        if self._base_handler:
+            self._base_handler["tracking_uri"] = uri
         return mlflow.set_tracking_uri(uri)
 
     @staticmethod
@@ -58,17 +53,18 @@ class MlflowPlugin:
     def create_experiment(
         self, name: str, artifact_location: Optional[str] = None, tags: Optional[Mapping[str, Any]] = None
     ) -> str:
-        neptune_tags = _to_neptune_tags(tags)
-        self._base_handler["experiment/tags"].add(neptune_tags)
-
-        self._base_handler["experiment/name"] = name
-
         experiment_id = mlflow.create_experiment(name, artifact_location, tags)
-        self._base_handler["experiment/experiment_id"] = experiment_id
+        if self._base_handler:
+            neptune_tags = _to_neptune_tags(tags)
+            self._base_handler["experiment/tags"].add(neptune_tags)
 
-        experiment = self._mlflow_client.get_experiment(experiment_id)
-        self._base_handler["experiment/creation_time"] = experiment.creation_time
-        self._base_handler["experiment/last_update_time"] = experiment.last_update_time
+            self._base_handler["experiment/name"] = name
+            self._base_handler["experiment/experiment_id"] = experiment_id
+
+            experiment = self._mlflow_client.get_experiment(experiment_id)
+            self._base_handler["experiment/creation_time"] = experiment.creation_time
+            self._base_handler["experiment/last_update_time"] = experiment.last_update_time
+
         return experiment_id
 
     def set_experiment(self, experiment_name: Optional[str] = None, experiment_id: Optional[str] = None) -> Experiment:
@@ -84,6 +80,8 @@ class MlflowPlugin:
             self._base_handler["experiment/experiment_id"] = experiment_id
             self._base_handler["experiment/creation_time"] = mlflow_experiment.creation_time
             self._base_handler["experiment/last_update_time"] = mlflow_experiment.last_update_time
+
+        return mlflow_experiment
 
     def start_run(
         self,

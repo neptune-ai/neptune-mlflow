@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from typing import Optional
+
 import click
 
 
@@ -36,7 +38,14 @@ import click
     default=50,
     type=int,
 )
-def sync(project: str, api_token: str, mlflow_tracking_uri: str, exclude_artifacts: bool, max_artifact_size: int):
+def sync(
+    *,
+    project: Optional[str],
+    api_token: Optional[str],
+    mlflow_tracking_uri: Optional[str],
+    exclude_artifacts: bool,
+    max_artifact_size: int,
+):
     """Exports MLflow runs to neptune.ai.
 
     Args:
