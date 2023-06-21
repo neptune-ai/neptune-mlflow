@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019, Neptune Labs Sp. z o.o.
+# Copyright (c) 2023, Neptune Labs Sp. z o.o.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,3 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+__all__ = ["NeptuneExporter", "__version__"]
+
+from neptune_mlflow_exporter.impl.neptune_exporter import NeptuneExporter
+from neptune_mlflow_exporter.impl.version import __version__
