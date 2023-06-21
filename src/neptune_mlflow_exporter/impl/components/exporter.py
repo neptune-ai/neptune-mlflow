@@ -67,7 +67,7 @@ class Exporter:
                 key=key,
             )
             metric_values = list(map(lambda metric: metric.value, metrics))
-            metric_timestamps = list(map(lambda metric: metric.timestamp, metrics))
+            metric_timestamps = list(map(lambda metric: metric.timestamp / 1e3, metrics))
             metric_steps = list(map(lambda metric: metric.step, metrics))
 
             neptune_run[f"run_data/metrics/{key}"].extend(

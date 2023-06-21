@@ -23,8 +23,6 @@ try:
 except ImportError:
     from neptune.new import Run as NeptuneRun
 
-from mlflow.entities import Run as MlflowRun
-
 from neptune_mlflow_exporter.impl.components import (
     ExportConfig,
     Exporter,
@@ -38,17 +36,6 @@ class ExportOrchestrator:
         self.fetcher = fetcher
         self.exporter = exporter
         self.config = config
-
-    def _export_run_metadata(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
-        self.exporter.export_run_info(neptune_run, mlflow_run)
-        self.exporter.export_run_data(neptune_run, mlflow_run)
-
-        if not self.config.exclude_artifacts:
-            self.exporter.export_artifacts(
-                neptune_run, mlflow_run, self.config.max_artifact_size, self.config.mlflow_tracking_uri
-            )
-
-        neptune_run.sync()
 
     def run(self) -> None:
         fetched_data = self.fetcher.fetch_data()
@@ -66,7 +53,15 @@ class ExportOrchestrator:
                 try:
                     experiment = fetched_data.mlflow_experiments[mlflow_run.info.experiment_id]
                     self.exporter.export_experiment_metadata(neptune_run, experiment)
-                    self._export_run_metadata(neptune_run, mlflow_run)
+
+                    self.exporter.export_run_info(neptune_run, mlflow_run)
+                    self.exporter.export_run_data(neptune_run, mlflow_run)
+
+                    if not self.config.exclude_artifacts:
+                        self.exporter.export_artifacts(
+                            neptune_run, mlflow_run, self.config.max_artifact_size, self.config.mlflow_tracking_uri
+                        )
+
                     click.echo(f"Run '{mlflow_run.info.run_name}' was saved")
                 except Exception as e:
                     click.echo(f"Error exporting run '{mlflow_run.info.run_name}': {e}")
