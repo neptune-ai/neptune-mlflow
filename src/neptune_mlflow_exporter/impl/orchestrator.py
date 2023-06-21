@@ -16,8 +16,6 @@
 
 __all__ = ["ExportOrchestrator"]
 
-from typing import List
-
 import click
 
 try:
@@ -41,21 +39,7 @@ class ExportOrchestrator:
         self.exporter = exporter
         self.config = config
 
-    def _fetch_runs(self) -> List[MlflowRun]:
-        try:
-            experiments = self.fetcher.get_all_mlflow_experiments()
-
-            experiment_ids = [experiment.experiment_id for experiment in experiments]
-
-            mlflow_runs = self.fetcher.get_all_mlflow_runs(experiment_ids)
-
-            return mlflow_runs
-        except Exception as e:
-            click.echo(f"Error during mlflow data fetching: {e}")
-            return []
-
-    def _export_data(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
-        self.exporter.export_experiment_metadata(neptune_run, mlflow_run)
+    def _export_run_metadata(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
         self.exporter.export_run_info(neptune_run, mlflow_run)
         self.exporter.export_run_data(neptune_run, mlflow_run)
 
@@ -64,12 +48,13 @@ class ExportOrchestrator:
                 neptune_run, mlflow_run, self.config.max_artifact_size, self.config.mlflow_tracking_uri
             )
 
-    def run(self) -> None:
-        mlflow_runs = self._fetch_runs()
-        existing_neptune_run_ids = self.fetcher.get_existing_neptune_run_ids()
+        neptune_run.sync()
 
-        for mlflow_run in mlflow_runs:
-            if mlflow_run.info.run_id in existing_neptune_run_ids:
+    def run(self) -> None:
+        fetched_data = self.fetcher.fetch_data()
+
+        for mlflow_run in fetched_data.mlflow_runs:
+            if mlflow_run.info.run_id in fetched_data.neptune_run_ids:
                 click.echo(f"Ignoring mlflow_run '{mlflow_run.info.run_name}' since it already exists")
                 continue
 
@@ -79,8 +64,9 @@ class ExportOrchestrator:
                 project=self.config.project_name, api_token=self.config.api_token, custom_run_id=mlflow_run.info.run_id
             ) as neptune_run:
                 try:
-                    self._export_data(neptune_run, mlflow_run)
-
+                    experiment = fetched_data.mlflow_experiments[mlflow_run.info.experiment_id]
+                    self.exporter.export_experiment_metadata(neptune_run, experiment)
+                    self._export_run_metadata(neptune_run, mlflow_run)
                     click.echo(f"Run '{mlflow_run.info.run_name}' was saved")
                 except Exception as e:
                     click.echo(f"Error exporting run '{mlflow_run.info.run_name}': {e}")

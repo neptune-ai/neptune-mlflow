@@ -17,8 +17,10 @@ from typing import Optional
 
 try:
     from neptune import init_project
+    from neptune.integrations.utils import verify_type
 except ImportError:
     from neptune.new import init_project
+    from neptune.new.integrations.utils import verify_type
 
 from neptune_mlflow_exporter.impl import NeptuneExporter
 
@@ -31,8 +33,7 @@ def sync(
     max_artifact_size: int = 50,
 ) -> None:
 
-    if not isinstance(max_artifact_size, int):
-        raise TypeError(f"Invalid type for `max_artifact_size`. Expected int, got {type(max_artifact_size)} instead.")
+    verify_type("max_artifact_size", max_artifact_size, int)
 
     if max_artifact_size <= 0:
         raise ValueError("Max artifact size must be a positive integer")

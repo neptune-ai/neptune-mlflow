@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from typing import Optional
+
 import click
 
 
@@ -36,7 +38,14 @@ import click
     default=50,
     type=int,
 )
-def sync(project: str, api_token: str, mlflow_tracking_uri: str, exclude_artifacts: bool, max_artifact_size: int):
+def sync(
+    *,
+    project: Optional[str],
+    api_token: Optional[str],
+    mlflow_tracking_uri: Optional[str],
+    exclude_artifacts: bool,
+    max_artifact_size: int,
+) -> None:
     """Exports MLflow runs to neptune.ai.
 
     Args:
@@ -55,7 +64,7 @@ def sync(project: str, api_token: str, mlflow_tracking_uri: str, exclude_artifac
     # We do not want to import anything if process was executed for autocompletion purposes.
     from neptune_mlflow_exporter.impl.sync import sync as run_sync
 
-    return run_sync(
+    run_sync(
         project_name=project,
         api_token=api_token,
         mlflow_tracking_uri=mlflow_tracking_uri,

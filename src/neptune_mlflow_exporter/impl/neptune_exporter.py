@@ -54,10 +54,10 @@ class NeptuneExporter:
             fetcher=Fetcher(self.project, self.mlflow_client),
             exporter=Exporter(self.mlflow_client),
             config=ExportConfig(
-                self.exclude_artifacts,
-                self.max_artifact_size,
-                self.project_name,
-                self.api_token,
-                self.mlflow_tracking_uri,
+                exclude_artifacts=self.exclude_artifacts,
+                max_artifact_size=self.max_artifact_size,
+                project_name=self.project_name,
+                api_token=self.api_token,
+                mlflow_tracking_uri=self.mlflow_tracking_uri,
             ),
         ).run()

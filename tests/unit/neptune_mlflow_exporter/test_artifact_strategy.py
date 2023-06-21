@@ -6,7 +6,7 @@ from unittest.mock import (
 
 from mlflow.entities import FileInfo
 
-from neptune_mlflow_exporter.impl.strategies import (
+from neptune_mlflow_exporter.impl.artifact_strategy import (
     DirectoryUploadStrategy,
     FileUploadStrategy,
 )

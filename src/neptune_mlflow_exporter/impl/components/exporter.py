@@ -23,31 +23,20 @@ import mlflow
 from mlflow.entities import Experiment
 from mlflow.entities import Run as MlflowRun
 
+from neptune_mlflow_exporter.impl.artifact_strategy import choose_upload_strategy
+
 try:
     from neptune import Run as NeptuneRun
 except ImportError:
-    from neptune.new.metadata_containers import Run as NeptuneRun
-
-from neptune_mlflow_exporter.impl.strategies import (
-    DirectoryUploadStrategy,
-    FileUploadStrategy,
-)
+    from neptune.new import Run as NeptuneRun
 
 
 class Exporter:
     def __init__(self, client: mlflow.tracking.MlflowClient):
         self.mlflow_client = client
 
-        self._cached_experiment: Optional[Experiment] = None
-
-    def export_experiment_metadata(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
-        if self._cached_experiment and self._cached_experiment.experiment_id == mlflow_run.info.experiment_id:
-            experiment = self._cached_experiment
-        else:
-
-            experiment = self.mlflow_client.get_experiment(experiment_id=mlflow_run.info.experiment_id)
-            self._cached_experiment = experiment
-
+    @staticmethod
+    def export_experiment_metadata(neptune_run: NeptuneRun, experiment: Experiment) -> None:
         neptune_run["experiment/experiment_id"] = experiment.experiment_id
         neptune_run["experiment/tags"] = experiment.tags
         neptune_run["experiment/name"] = experiment.name
@@ -73,28 +62,22 @@ class Exporter:
         neptune_run["run_data"] = data_dict
 
         for key in metric_keys:
-            metric_values = [
-                metric.value
-                for metric in self.mlflow_client.get_metric_history(
-                    run_id=mlflow_run.info.run_id,
-                    key=key,
-                )
-            ]
-            neptune_run[f"run_data/metrics/{key}"].extend(metric_values)
+            metrics = self.mlflow_client.get_metric_history(
+                run_id=mlflow_run.info.run_id,
+                key=key,
+            )
+            metric_values = list(map(lambda metric: metric.value, metrics))
+            metric_timestamps = list(map(lambda metric: metric.timestamp, metrics))
+            metric_steps = list(map(lambda metric: metric.step, metrics))
+
+            neptune_run[f"run_data/metrics/{key}"].extend(
+                metric_values, steps=metric_steps, timestamps=metric_timestamps
+            )
 
     def export_artifacts(
         self, neptune_run: NeptuneRun, mlflow_run: MlflowRun, max_artifact_size: int, tracking_uri: Optional[str]
     ) -> None:
         for artifact in self.mlflow_client.list_artifacts(run_id=mlflow_run.info.run_id):
-            if artifact.is_dir:
-                strategy = DirectoryUploadStrategy(
-                    tracking_uri=tracking_uri,
-                    max_file_size=max_artifact_size,
-                )
-            else:
-                strategy = FileUploadStrategy(
-                    tracking_uri=tracking_uri,
-                    max_file_size=max_artifact_size,
-                )
+            strategy = choose_upload_strategy(artifact, tracking_uri, max_artifact_size)
 
-            strategy.upload_artifact(neptune_run, artifact, mlflow_run.info.run_id)
+            strategy.upload_artifact(neptune_run, artifact, mlflow_run)

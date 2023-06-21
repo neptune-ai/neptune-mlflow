@@ -5,7 +5,7 @@ try:
     )
 except ImportError:
     from neptune.new import init_project
-    from neptune.new.metadata_containers import Project
+    from neptune.new import Project
 
 import pytest
 import tensorflow as tf
