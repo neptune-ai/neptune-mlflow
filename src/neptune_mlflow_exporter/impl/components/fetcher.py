@@ -16,7 +16,7 @@
 
 __all__ = ["Fetcher"]
 
-from collections.abc import MutableMapping
+from typing import MutableMapping
 from dataclasses import dataclass
 from typing import (
     List,
