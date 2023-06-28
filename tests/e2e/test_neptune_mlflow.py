@@ -63,7 +63,7 @@ def test_e2e(dataset, model, neptune_exporter_e2e):
     run_name = mlflow_runs["tags.mlflow.runName"][0]
 
     # check logged run metadata
-    neptune_run = neptune.init_run(custom_run_id=run_id, name="test-name")
+    neptune_run = neptune.init_run(custom_run_id=run_id)
 
     # experiment
     assert neptune_run["experiment/experiment_id"].fetch() == experiment.experiment_id
