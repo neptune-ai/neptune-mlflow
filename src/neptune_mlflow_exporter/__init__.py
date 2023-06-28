@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019, Neptune Labs Sp. z o.o.
+# Copyright (c) 2023, Neptune Labs Sp. z o.o.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ def sync(
     mlflow_tracking_uri: Optional[str],
     exclude_artifacts: bool,
     max_artifact_size: int,
-):
+) -> None:
     """Exports MLflow runs to neptune.ai.
 
     Args:
@@ -64,7 +64,7 @@ def sync(
     # We do not want to import anything if process was executed for autocompletion purposes.
     from neptune_mlflow_exporter.impl.sync import sync as run_sync
 
-    return run_sync(
+    run_sync(
         project_name=project,
         api_token=api_token,
         mlflow_tracking_uri=mlflow_tracking_uri,

@@ -10,8 +10,8 @@ try:
         init_run,
     )
 except ImportError:
-    from neptune.new import init_project, init_run
-    from neptune.new.metadata_containers import Project
+    from neptune.new import init_project
+    from neptune.new import Project
 
 import pytest
 import tensorflow as tf

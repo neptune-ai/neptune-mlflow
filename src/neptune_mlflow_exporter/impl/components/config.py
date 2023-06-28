@@ -14,7 +14,16 @@
 # limitations under the License.
 #
 
-__all__ = ["NeptuneExporter", "__version__"]
+__all__ = ["ExportConfig"]
 
-from neptune_mlflow_exporter.impl.neptune_exporter import NeptuneExporter
-from neptune_mlflow_exporter.impl.version import __version__
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
+class ExportConfig:
+    exclude_artifacts: bool
+    max_artifact_size: int
+    project_name: Optional[str]
+    api_token: Optional[str]
+    mlflow_tracking_uri: Optional[str]

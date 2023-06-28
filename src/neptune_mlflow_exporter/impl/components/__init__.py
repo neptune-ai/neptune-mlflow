@@ -14,7 +14,12 @@
 # limitations under the License.
 #
 
-__all__ = ["NeptuneExporter", "__version__"]
+__all__ = [
+    "Fetcher",
+    "Exporter",
+    "ExportConfig",
+]
 
-from neptune_mlflow_exporter.impl.neptune_exporter import NeptuneExporter
-from neptune_mlflow_exporter.impl.version import __version__
+from neptune_mlflow_exporter.impl.components.config import ExportConfig
+from neptune_mlflow_exporter.impl.components.exporter import Exporter
+from neptune_mlflow_exporter.impl.components.fetcher import Fetcher
