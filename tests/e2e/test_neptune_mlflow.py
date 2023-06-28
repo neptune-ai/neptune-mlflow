@@ -2,6 +2,7 @@ import mlflow
 import mlflow.keras
 import mlflow.tensorflow
 import neptune
+import time
 
 EPOCHS = 1
 BATCH_SIZE = 1
@@ -58,10 +59,12 @@ def test_e2e(dataset, model, neptune_exporter_e2e):
     neptune_exporter_e2e.run()
 
     # check logged project metadata
-    experiment = mlflow.get_experiment_by_name("E2E neptune experiment")
+    experiment = mlflow.get_experiment_by_name(MLFLOW_EXPERIMENT_NAME)
+    mlflow_runs = mlflow.search_runs(experiment_names=[MLFLOW_EXPERIMENT_NAME])
+    run_name = mlflow_runs["tags.mlflow.runName"][0]
 
     # check logged run metadata
-    neptune_run = neptune.init_run(custom_run_id=run_id)
+    neptune_run = neptune.init_run(custom_run_id=run_id, name="test-name")
 
     # experiment
     assert neptune_run["experiment/experiment_id"].fetch() == experiment.experiment_id
@@ -72,6 +75,10 @@ def test_e2e(dataset, model, neptune_exporter_e2e):
     # run info
     assert neptune_run["run_info/lifecycle_stage"].fetch() == "active"
     assert neptune_run.exists("run_info/status")
+    assert neptune_run["run_info/run_name"].fetch() == run_name
+    # Currently, client overwrites `sys/name` when run is re-opened
+    # with `custom_run_id`.
+    # assert neptune_run["sys/name"].fetch() == run_name
 
     # run data
     assert set(MLFLOW_RUN_TAGS.items()).issubset(set(neptune_run["run_data/tags"].fetch().items()))
