@@ -53,6 +53,7 @@ class Exporter:
         info["end_time"] = datetime.fromtimestamp(mlflow_run.info.end_time / 1e3)
 
         neptune_run["run_info"] = info
+        neptune_run["sys/name"] = info["run_name"]
 
     def export_run_data(self, neptune_run: NeptuneRun, mlflow_run: MlflowRun) -> None:
         data_dict = mlflow_run.data.to_dictionary()

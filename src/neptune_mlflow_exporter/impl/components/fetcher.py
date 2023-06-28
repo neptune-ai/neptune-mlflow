@@ -16,10 +16,10 @@
 
 __all__ = ["Fetcher"]
 
-from typing import MutableMapping
 from dataclasses import dataclass
 from typing import (
     List,
+    MutableMapping,
     Set,
 )
 
