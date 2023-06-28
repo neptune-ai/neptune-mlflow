@@ -2,7 +2,6 @@ import mlflow
 import mlflow.keras
 import mlflow.tensorflow
 import neptune
-import time
 
 EPOCHS = 1
 BATCH_SIZE = 1

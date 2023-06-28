@@ -48,8 +48,10 @@ class ExportOrchestrator:
             click.echo(f"Loading mlflow_run '{mlflow_run.info.run_name}'")
 
             with NeptuneRun(
-                project=self.config.project_name, api_token=self.config.api_token, custom_run_id=mlflow_run.info.run_id,
-                capture_hardware_metrics=False
+                project=self.config.project_name,
+                api_token=self.config.api_token,
+                custom_run_id=mlflow_run.info.run_id,
+                capture_hardware_metrics=False,
             ) as neptune_run:
                 try:
                     experiment = fetched_data.mlflow_experiments[mlflow_run.info.experiment_id]
