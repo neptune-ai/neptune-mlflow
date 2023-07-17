@@ -98,3 +98,6 @@ extend-ignore = "E203"
 
 [tool.poetry.plugins."neptune.plugins"]
 "mlflow" = "neptune_mlflow_exporter:sync"
+
+[tool.poetry.plugins."mlflow.tracking_store"]
+"neptune-plugin" = "neptune_mlflow_plugin.impl.plugin:NeptuneTrackingStore"
