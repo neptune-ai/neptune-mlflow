@@ -1,9 +1,17 @@
 import uuid
+import warnings
 from datetime import datetime
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 
 import mlflow
-from mlflow.entities import Metric
+from mlflow.entities import (
+    DatasetInput,
+    Metric,
+    Param,
+)
 from mlflow.entities import Run as MlflowRun
 from mlflow.entities import (
     RunData,
@@ -17,20 +25,43 @@ from neptune import Run as NeptuneRun
 
 
 class NeptuneTrackingStore(AbstractStore):
-    def __init__(self, store_uri, artifact_uri):
+    def __init__(self, store_uri: Optional[str], artifact_uri: Optional[str]):
         self.store_uri = store_uri
         self.artifact_uri = artifact_uri
-
-        _, init_args = store_uri.split("//")
+        _, init_args = store_uri.split("://")
 
         init_args = init_args.split("/")
 
-        self.api_token = init_args[0] if init_args[0] else None
-        self.project = init_args[1] if init_args[1] else None
+        self._api_token = init_args[0] if init_args[0] else None
+        self._project = init_args[1] if init_args[1] else None
+
+        self._neptune_kwargs = {}
+
+        if len(init_args) > 2:
+            for init_arg in init_args[2:]:
+                k, v = init_arg.split("=")
+                self._neptune_kwargs[k] = v
+
+        passed_custom_run_id = self._neptune_kwargs.pop("custom_run_id", None)
+        if passed_custom_run_id:
+            warnings.warn(f"Passed custom_run_id '{passed_custom_run_id}' will be ignored.")
 
         self._neptune_run: Optional[NeptuneRun] = None
-
         super().__init__()
+
+    def _manage_neptune_run_creation(self, run_id: str) -> None:
+        if self._neptune_run:
+            if self._neptune_run["sys/custom_run_id"].fetch() != run_id:  # new mlflow run
+                self._neptune_run.sync()
+                self._neptune_run.stop()
+
+            else:
+                return
+
+        # if reached here, there is no active neptune run
+        self._neptune_run = NeptuneRun(
+            api_token=self._api_token, project=self._project, custom_run_id=run_id, **self._neptune_kwargs
+        )
 
     def search_experiments(
         self,
@@ -72,6 +103,7 @@ class NeptuneTrackingStore(AbstractStore):
             datetime.now(),
             None,
             LifecycleStage.ACTIVE,
+            run_name=run_name,
         )
 
         run_data = RunData()
@@ -93,13 +125,18 @@ class NeptuneTrackingStore(AbstractStore):
     def log_batch(self, run_id, metrics, params, tags):
         pass
 
+    def log_inputs(self, run_id: str, datasets: Optional[List[DatasetInput]] = None):
+        pass
+
     def record_logged_model(self, run_id, mlflow_model):
         pass
 
     def log_metric(self, run_id, metric: Metric):
-        self.log_batch(run_id, metrics=[metric], params=[], tags=[])
-
-        if not self._neptune_run:
-            self._neptune_run = NeptuneRun(api_token=self.api_token, project=self.project)
+        self._manage_neptune_run_creation(run_id)
 
         self._neptune_run[metric.key].append(metric.value, step=metric.step, timestamp=metric.timestamp / 1e3)
+
+    def log_param(self, run_id, param: Param):
+        self._manage_neptune_run_creation(run_id)
+
+        self._neptune_run[param.key] = param.value

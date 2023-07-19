@@ -1,9 +1,18 @@
+from __future__ import annotations
+
 __all__ = ["NeptuneLogger"]
 
 import os
 from contextlib import contextmanager
+from typing import (
+    TYPE_CHECKING,
+    Any,
+)
 
 import mlflow
+
+if TYPE_CHECKING:
+    from mlflow import ActiveRun
 
 
 @contextmanager
@@ -45,6 +54,21 @@ class NeptuneLogger:
     @log_both
     def log_metric(self, key, value, step=None):
         mlflow.log_metric(key, value, step=step)
+
+    @log_both
+    def log_param(self, key, value):
+        mlflow.log_param(key, value)
+
+    def start_run(
+        self,
+        run_id: str | None = None,
+        experiment_id: str | None = None,
+        run_name: str | None = None,
+        nested: bool = False,
+        tags: dict[str, Any] | None = None,
+        description: str | None = None,
+    ) -> "ActiveRun":
+        return mlflow.start_run(run_id, experiment_id, run_name, nested, tags, description)
 
 
 # import os
