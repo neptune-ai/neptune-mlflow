@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__all__ = ["NeptuneLogger"]
+__all__ = ["NeptuneMlflowTracker"]
 
 import os
 from contextlib import contextmanager
@@ -35,14 +35,14 @@ def log_both(func):
     return inner
 
 
-class NeptuneLogger:
+class NeptuneMlflowTracker:
     PLUGIN_SCHEME = "neptune-plugin"
 
     def __init__(self, api_token=None, project=None, **kwargs):
         self.api_token = api_token if api_token else ""
         self.project = project if project else ""
 
-        self.neptune_plugin_uri = f"{NeptuneLogger.PLUGIN_SCHEME}://{self.api_token}/{self.project}"
+        self.neptune_plugin_uri = f"{NeptuneMlflowTracker.PLUGIN_SCHEME}://{self.api_token}/{self.project}"
 
         if kwargs:
             other_args = "/" + "/".join([f"{key}={val}" for key, val in kwargs.items()])
@@ -58,6 +58,10 @@ class NeptuneLogger:
     @log_both
     def log_param(self, key, value):
         mlflow.log_param(key, value)
+
+    @log_both
+    def set_tag(self, key, value):
+        mlflow.set_tag(key, value)
 
     def start_run(
         self,

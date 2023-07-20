@@ -140,3 +140,10 @@ class NeptuneTrackingStore(AbstractStore):
         self._manage_neptune_run_creation(run_id)
 
         self._neptune_run[param.key] = param.value
+
+    def set_tag(self, run_id, tag):
+        self._manage_neptune_run_creation(run_id)
+
+        neptune_tags = [tag.key, tag.value]
+
+        self._neptune_run["sys/tags"].add(neptune_tags)
