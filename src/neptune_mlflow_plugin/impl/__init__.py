@@ -72,7 +72,17 @@ class NeptuneMlflowTracker:
         tags: dict[str, Any] | None = None,
         description: str | None = None,
     ) -> "ActiveRun":
-        return mlflow.start_run(run_id, experiment_id, run_name, nested, tags, description)
+        run = mlflow.start_run(run_id, experiment_id, run_name, nested, tags, description)
+        experiment_id = run.info.experiment_id
+        experiment_name = mlflow.get_experiment(experiment_id).name
+
+        with preserve_tracking_uri():
+            mlflow.set_tracking_uri(self.neptune_plugin_uri)
+            mlflow.set_tag("", f"[EXP NAME] {experiment_name}")
+            mlflow.set_tag("", f"[RUN ID] {run.info.run_id}")
+            mlflow.set_tag("", f"[RUN NAME] {run.info.run_name}")
+
+        return run
 
 
 # import os
