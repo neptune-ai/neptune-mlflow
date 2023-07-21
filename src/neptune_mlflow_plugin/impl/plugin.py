@@ -1,27 +1,18 @@
-import uuid
 import warnings
-from datetime import datetime
 from typing import (
     List,
     Optional,
 )
 
-import mlflow
 from mlflow.entities import (
     DatasetInput,
     Metric,
     Param,
-)
-from mlflow.entities import Run as MlflowRun
-from mlflow.entities import (
-    RunData,
-    RunInfo,
     ViewType,
 )
-from mlflow.entities.lifecycle_stage import LifecycleStage
 from mlflow.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
 from mlflow.store.tracking.abstract_store import AbstractStore
-from neptune import Run as NeptuneRun
+from neptune import Run
 
 
 class NeptuneTrackingStore(AbstractStore):
@@ -46,7 +37,7 @@ class NeptuneTrackingStore(AbstractStore):
         if passed_custom_run_id:
             warnings.warn(f"Passed custom_run_id '{passed_custom_run_id}' will be ignored.")
 
-        self._neptune_run: Optional[NeptuneRun] = None
+        self._neptune_run: Optional[Run] = None
         super().__init__()
 
     def _manage_neptune_run_creation(self, run_id: str) -> None:
@@ -59,7 +50,7 @@ class NeptuneTrackingStore(AbstractStore):
                 return
 
         # if reached here, there is no active neptune run
-        self._neptune_run = NeptuneRun(
+        self._neptune_run = Run(
             api_token=self._api_token, project=self._project, custom_run_id=run_id, **self._neptune_kwargs
         )
 
@@ -95,20 +86,7 @@ class NeptuneTrackingStore(AbstractStore):
         pass
 
     def create_run(self, experiment_id, user_id, start_time, tags, run_name):
-        run_info = RunInfo(
-            uuid.uuid4(),
-            experiment_id,
-            user_id,
-            mlflow.entities.run_status.RunStatus.RUNNING,
-            datetime.now(),
-            None,
-            LifecycleStage.ACTIVE,
-            run_name=run_name,
-        )
-
-        run_data = RunData()
-
-        return MlflowRun(run_info, run_data)
+        pass
 
     def delete_run(self, run_id):
         pass
@@ -144,6 +122,9 @@ class NeptuneTrackingStore(AbstractStore):
     def set_tag(self, run_id, tag):
         self._manage_neptune_run_creation(run_id)
 
-        neptune_tags = [tag.key, tag.value]
+        if tag.key:
+            neptune_tags = [tag.key, tag.value]
+        else:
+            neptune_tags = tag.value
 
         self._neptune_run["sys/tags"].add(neptune_tags)
