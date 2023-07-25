@@ -1,17 +1,30 @@
+import os
+import uuid
 import warnings
+from datetime import datetime
+from pathlib import Path
 from typing import (
     List,
     Optional,
 )
 
+import neptune
 from mlflow.entities import (
     DatasetInput,
+    LifecycleStage,
     Metric,
     Param,
+)
+from mlflow.entities import Run as MlflowRun
+from mlflow.entities import (
+    RunData,
+    RunInfo,
     ViewType,
 )
+from mlflow.store.artifact.artifact_repo import ArtifactRepository
 from mlflow.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
 from mlflow.store.tracking.abstract_store import AbstractStore
+from mlflow.utils.file_utils import local_file_uri_to_path
 from neptune import Run
 
 
@@ -80,13 +93,26 @@ class NeptuneTrackingStore(AbstractStore):
         pass
 
     def get_run(self, run_id):
-        pass
+        return MlflowRun(
+            run_info=RunInfo(
+                run_uuid=uuid.uuid4(),
+                start_time=datetime.now(),
+                end_time=None,
+                experiment_id="mock_exp_id",
+                user_id=os.getlogin(),
+                lifecycle_stage=LifecycleStage.ACTIVE,
+                status="running",
+                run_id=run_id,
+                artifact_uri=self.store_uri,
+            ),
+            run_data=RunData(),
+        )
 
     def update_run_info(self, run_id, run_status, end_time, run_name):
         pass
 
     def create_run(self, experiment_id, user_id, start_time, tags, run_name):
-        pass
+        breakpoint()
 
     def delete_run(self, run_id):
         pass
@@ -128,3 +154,48 @@ class NeptuneTrackingStore(AbstractStore):
             neptune_tags = tag.value
 
         self._neptune_run["sys/tags"].add(neptune_tags)
+
+
+class NeptuneArtifactRepo(ArtifactRepository):
+    def __init__(self, *args, **kwargs):
+
+        super(NeptuneArtifactRepo, self).__init__(*args, **kwargs)
+        self._artifact_dir = local_file_uri_to_path(self.artifact_uri)
+        _, init_args = self.artifact_uri.split("://")
+
+        init_args = init_args.split("/")
+
+        self._api_token = init_args[0] if init_args[0] else None
+        self._project = init_args[1] if init_args[1] else None
+
+        self._neptune_kwargs = {}
+
+        if len(init_args) > 2:
+            for init_arg in init_args[2:]:
+                k, v = init_arg.split("=")
+                self._neptune_kwargs[k] = v
+
+        passed_custom_run_id = self._neptune_kwargs.pop("custom_run_id", None)
+        if passed_custom_run_id:
+            warnings.warn(f"Passed custom_run_id '{passed_custom_run_id}' will be ignored.")
+
+        self._neptune_run: Optional[Run] = None
+        self._neptune_project = neptune.init_project(self._project, api_token=self._api_token)
+
+    def log_artifact(self, local_file, artifact_path=None):
+        target_path = artifact_path if artifact_path else Path(local_file).stem
+        custom_run_id = os.getenv("NEPTUNE_MLFLOW_RUN_ID", None)
+        if not custom_run_id:
+            return
+
+        with Run(project=self._project, api_token=self._api_token, custom_run_id=custom_run_id) as run:
+            run[target_path].upload(local_file)
+
+    def log_artifacts(self, local_dir, artifact_path=None):
+        pass
+
+    def list_artifacts(self, path):
+        pass
+
+    def _download_file(self, remote_file_path, local_path):
+        pass

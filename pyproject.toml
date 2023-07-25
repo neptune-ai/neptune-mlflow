@@ -101,3 +101,6 @@ extend-ignore = "E203"
 
 [tool.poetry.plugins."mlflow.tracking_store"]
 "neptune-plugin" = "neptune_mlflow_plugin.impl.plugin:NeptuneTrackingStore"
+
+[tool.poetry.plugins."mlflow.artifact_repository"]
+"neptune-plugin" = "neptune_mlflow_plugin.impl.plugin:NeptuneArtifactRepo"

@@ -75,6 +75,11 @@ class NeptuneMlflowTracker:
     def set_tag(self, key, value):
         mlflow.set_tag(key, value)
 
+    @log_both
+    def log_artifact(self, local_path, run_id: str):
+        os.environ["NEPTUNE_MLFLOW_RUN_ID"] = run_id
+        mlflow.log_artifact(local_path)
+
     def start_run(
         self,
         run_id: str | None = None,
