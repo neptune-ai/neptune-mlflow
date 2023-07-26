@@ -127,7 +127,15 @@ class NeptuneTrackingStore(AbstractStore):
         pass
 
     def log_batch(self, run_id, metrics, params, tags):
-        pass
+        self._manage_neptune_run_creation(run_id)
+
+        for metric in metrics:
+            self._neptune_run[f"metrics/{metric.key}"].append(
+                metric.value, step=metric.step, timestamp=metric.timestamp
+            )
+
+        for param in params:
+            self._neptune_run[f"params/{param.key}"].append(param.value)
 
     def log_inputs(self, run_id: str, datasets: Optional[List[DatasetInput]] = None):
         pass

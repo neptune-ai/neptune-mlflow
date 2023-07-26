@@ -4,6 +4,7 @@ __all__ = ["NeptuneMlflowTracker"]
 
 import os
 from contextlib import contextmanager
+from functools import wraps
 from threading import Thread
 from typing import (
     TYPE_CHECKING,
@@ -24,6 +25,7 @@ def preserve_tracking_uri():
 
 
 def log_both(func):
+    @wraps(func)
     def inner(*args, **kwargs):
         mlflow_tracking_uri = mlflow.get_tracking_uri()
         neptune_tracking_uri = os.getenv("NEPTUNE_MLFLOW_URI")
@@ -79,6 +81,14 @@ class NeptuneMlflowTracker:
     def log_artifact(self, local_path, run_id: str):
         os.environ["NEPTUNE_MLFLOW_RUN_ID"] = run_id
         mlflow.log_artifact(local_path)
+
+    @log_both
+    def log_metrics(self, metrics, step):
+        mlflow.log_metrics(metrics, step)
+
+    @log_both
+    def log_params(self, params):
+        mlflow.log_params(params)
 
     def start_run(
         self,
