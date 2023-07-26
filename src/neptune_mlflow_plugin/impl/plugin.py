@@ -182,17 +182,30 @@ class NeptuneArtifactRepo(ArtifactRepository):
         self._neptune_run: Optional[Run] = None
         self._neptune_project = neptune.init_project(self._project, api_token=self._api_token)
 
-    def log_artifact(self, local_file, artifact_path=None):
-        target_path = artifact_path if artifact_path else Path(local_file).stem
+    def _fetch_neptune_run(self) -> Optional[Run]:
         custom_run_id = os.getenv("NEPTUNE_MLFLOW_RUN_ID", None)
         if not custom_run_id:
             return
 
-        with Run(project=self._project, api_token=self._api_token, custom_run_id=custom_run_id) as run:
+        return Run(project=self._project, api_token=self._api_token, custom_run_id=custom_run_id)
+
+    def log_artifact(self, local_file, artifact_path=None):
+        target_path = artifact_path if artifact_path else Path(local_file).stem
+        run = self._fetch_neptune_run()
+        if not run:
+            return
+
+        with run:
             run[target_path].upload(local_file)
 
     def log_artifacts(self, local_dir, artifact_path=None):
-        pass
+        target_path = artifact_path if artifact_path else Path(local_dir).stem
+        run = self._fetch_neptune_run()
+        if not run:
+            return
+
+        with run:
+            run[target_path].upload_files(os.path.join(local_dir, "*"))
 
     def list_artifacts(self, path):
         pass
