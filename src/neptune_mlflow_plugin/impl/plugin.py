@@ -199,12 +199,13 @@ class NeptuneArtifactRepo(ArtifactRepository):
 
     def log_artifact(self, local_file, artifact_path=None):
         target_path = artifact_path if artifact_path else Path(local_file).stem
-        run = self._fetch_neptune_run()
-        if not run:
+        neptune_run = self._fetch_neptune_run()
+
+        if not neptune_run:
             return
 
-        with run:
-            run[target_path].upload(local_file)
+        with neptune_run:
+            neptune_run[target_path].upload(local_file)
 
     def log_artifacts(self, local_dir, artifact_path=None):
         target_path = artifact_path if artifact_path else Path(local_dir).stem

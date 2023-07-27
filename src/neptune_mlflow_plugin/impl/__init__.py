@@ -90,6 +90,19 @@ class NeptuneMlflowTracker:
     def log_params(self, params):
         mlflow.log_params(params)
 
+    @log_both
+    def log_dict(self, dictionary, artifact_file, run_id):
+        os.environ["NEPTUNE_MLFLOW_RUN_ID"] = run_id
+        mlflow.log_dict(dictionary, artifact_file)
+
+    def log_figure(self, fig, artifact_path, run_id):
+        # matplotlib does not work well with multithreading
+        with preserve_tracking_uri():
+            mlflow.set_tracking_uri(self.neptune_plugin_uri)
+            os.environ["NEPTUNE_MLFLOW_RUN_ID"] = run_id
+            mlflow.log_figure(fig, artifact_path)
+        mlflow.log_figure(fig, artifact_path)
+
     def start_run(
         self,
         run_id: str | None = None,
