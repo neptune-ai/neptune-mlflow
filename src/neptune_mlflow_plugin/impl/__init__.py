@@ -9,9 +9,11 @@ from threading import Thread
 from typing import (
     TYPE_CHECKING,
     Any,
+    Optional,
 )
 
 import mlflow
+from matplotlib.figure import Figure
 
 if TYPE_CHECKING:
     from mlflow import ActiveRun
@@ -52,7 +54,8 @@ def log_both(func):
 class NeptuneMlflowTracker:
     PLUGIN_SCHEME = "neptune-plugin"
 
-    def __init__(self, api_token=None, project=None, **kwargs):
+    def __init__(self, *, api_token: Optional[str] = None, project: Optional[str] = None, **kwargs):
+
         self.api_token = api_token if api_token else ""
         self.project = project if project else ""
 
@@ -66,42 +69,42 @@ class NeptuneMlflowTracker:
         os.environ["NEPTUNE_MLFLOW_URI"] = self.neptune_plugin_uri
 
     @log_both
-    def log_metric(self, key, value, step=None):
+    def log_metric(self, key: str, value: float, step: Optional[int] = None) -> None:
         mlflow.log_metric(key, value, step=step)
 
     @log_both
-    def log_param(self, key, value):
+    def log_param(self, key: str, value: Any) -> None:
         mlflow.log_param(key, value)
 
     @log_both
-    def set_tag(self, key, value):
+    def set_tag(self, key: str, value: Any) -> None:
         mlflow.set_tag(key, value)
 
     @log_both
-    def log_artifact(self, local_path, run_id: str):
+    def log_artifact(self, run_id: str, local_path: str, artifact_path: Optional[str] = None) -> None:
         os.environ["NEPTUNE_MLFLOW_RUN_ID"] = run_id
-        mlflow.log_artifact(local_path)
+        mlflow.log_artifact(local_path, artifact_path=artifact_path)
 
     @log_both
-    def log_metrics(self, metrics, step):
+    def log_metrics(self, metrics: dict[str, float], step: Optional[int] = None) -> None:
         mlflow.log_metrics(metrics, step)
 
     @log_both
-    def log_params(self, params):
+    def log_params(self, params: dict[str, Any]) -> None:
         mlflow.log_params(params)
 
     @log_both
-    def log_dict(self, dictionary, artifact_file, run_id):
+    def log_dict(self, run_id: str, dictionary: dict[str, Any], artifact_file: str):
         os.environ["NEPTUNE_MLFLOW_RUN_ID"] = run_id
         mlflow.log_dict(dictionary, artifact_file)
 
-    def log_figure(self, fig, artifact_path, run_id):
+    def log_figure(self, run_id: str, figure: Figure, artifact_file: str):
         # matplotlib does not work well with multithreading
         with preserve_tracking_uri():
             mlflow.set_tracking_uri(self.neptune_plugin_uri)
             os.environ["NEPTUNE_MLFLOW_RUN_ID"] = run_id
-            mlflow.log_figure(fig, artifact_path)
-        mlflow.log_figure(fig, artifact_path)
+            mlflow.log_figure(figure, artifact_file)  # log to Neptune
+        mlflow.log_figure(figure, artifact_file)  # log to Mlflow (reverse order doesn't work for some reason)
 
     def start_run(
         self,
