@@ -14,6 +14,7 @@ from typing import (
 
 import mlflow
 from matplotlib.figure import Figure
+from numpy import ndarray
 
 if TYPE_CHECKING:
     from mlflow import ActiveRun
@@ -94,17 +95,22 @@ class NeptuneMlflowTracker:
         mlflow.log_params(params)
 
     @log_both
-    def log_dict(self, run_id: str, dictionary: dict[str, Any], artifact_file: str):
+    def log_dict(self, run_id: str, dictionary: dict[str, Any], artifact_file: str) -> None:
         os.environ["NEPTUNE_MLFLOW_RUN_ID"] = run_id
         mlflow.log_dict(dictionary, artifact_file)
 
-    def log_figure(self, run_id: str, figure: Figure, artifact_file: str):
+    def log_figure(self, run_id: str, figure: Figure, artifact_file: str) -> None:
         # matplotlib does not work well with multithreading
         with preserve_tracking_uri():
             mlflow.set_tracking_uri(self.neptune_plugin_uri)
             os.environ["NEPTUNE_MLFLOW_RUN_ID"] = run_id
             mlflow.log_figure(figure, artifact_file)  # log to Neptune
         mlflow.log_figure(figure, artifact_file)  # log to Mlflow (reverse order doesn't work for some reason)
+
+    @log_both
+    def log_image(self, run_id: str, image: ndarray, artifact_file: str) -> None:
+        os.environ["NEPTUNE_MLFLOW_RUN_ID"] = run_id
+        mlflow.log_image(image, artifact_file)
 
     def start_run(
         self,
