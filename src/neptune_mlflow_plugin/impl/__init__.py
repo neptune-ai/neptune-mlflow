@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__all__ = ["NeptuneMlflowTracker"]
+__all__ = ["NeptuneMlflowTracker", "create_neptune_tracking_uri"]
 
 import os
 from contextlib import contextmanager
@@ -18,6 +18,20 @@ from numpy import ndarray
 
 if TYPE_CHECKING:
     from mlflow import ActiveRun
+
+
+PLUGIN_SCHEME = "neptune-plugin"
+
+
+def create_neptune_tracking_uri(
+    *,
+    api_token: Optional[str] = None,
+    project: Optional[str] = None,
+    mode: str = "async",
+    name: str = "Untitled",
+    capture_stdout: bool = True,
+) -> str:
+    return f"{PLUGIN_SCHEME}://" f"api_token={api_token}/" f"project={project}/" f"mode={mode}"
 
 
 @contextmanager
