@@ -31,7 +31,14 @@ def create_neptune_tracking_uri(
     name: str = "Untitled",
     capture_stdout: bool = True,
 ) -> str:
-    return f"{PLUGIN_SCHEME}://" f"api_token={api_token}/" f"project={project}/" f"mode={mode}"
+    return (
+        f"{PLUGIN_SCHEME}://"
+        f"api_token={api_token}/"
+        f"project={project}/"
+        f"mode={mode}/"
+        f"name={name}/"
+        f"capture_stdout={capture_stdout}"
+    )
 
 
 @contextmanager

@@ -1,6 +1,7 @@
 import os
 import uuid
 import warnings
+import zipfile
 from datetime import datetime
 from pathlib import Path
 from typing import (
@@ -12,6 +13,8 @@ from typing import (
 
 from mlflow.entities import (
     DatasetInput,
+    Experiment,
+    FileInfo,
     LifecycleStage,
     Metric,
     Param,
@@ -27,6 +30,7 @@ from mlflow.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
 from mlflow.store.tracking.abstract_store import AbstractStore
 from mlflow.utils.file_utils import local_file_uri_to_path
 from neptune import Run
+from neptune.attributes import FileSet
 
 
 def singleton(class_):
@@ -130,10 +134,25 @@ class NeptuneTrackingStore(AbstractStore):
         pass
 
     def create_experiment(self, name, artifact_location, tags):
-        ...
+        return Experiment(
+            experiment_id="neptune-mock-experiment",
+            name=name,
+            artifact_location=artifact_location,
+            tags=tags,
+            lifecycle_stage=LifecycleStage.ACTIVE,
+            creation_time=datetime.now(),
+            last_update_time=datetime.now(),
+        )
 
     def get_experiment(self, experiment_id):
-        pass
+        return Experiment(
+            experiment_id=experiment_id,
+            name="neptune-mock-experiment",
+            artifact_location="",
+            lifecycle_stage=LifecycleStage.ACTIVE,
+            creation_time=datetime.now(),
+            last_update_time=datetime.now(),
+        )
 
     def delete_experiment(self, experiment_id):
         pass
@@ -265,7 +284,28 @@ class NeptuneArtifactRepo(ArtifactRepository):
         self._neptune_run.sync()
 
     def list_artifacts(self, path):
-        pass
+        self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
+        result = []
+
+        for entry in self._neptune_run[path].list_fileset_files():
+            result.append(FileInfo(path=entry.name, is_dir=(entry.file_type == "directory"), file_size=entry.size))
+
+        return result
+
+    def download_artifacts(self, artifact_path, dst_path=None):
+        self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
+        self._neptune_run[artifact_path].download(destination=dst_path)
+
+        if isinstance(self._neptune_run.get_structure()[artifact_path], FileSet):
+            if dst_path:
+                local_path = os.path.join(dst_path, artifact_path + ".zip")
+            else:
+                local_path = artifact_path
+
+            with zipfile.ZipFile(local_path) as zipped:
+                zipped.extractall(dst_path)
+
+            os.remove(local_path)
 
     def _download_file(self, remote_file_path, local_path):
-        pass
+        ...
