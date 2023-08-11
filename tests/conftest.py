@@ -1,7 +1,5 @@
 from unittest.mock import MagicMock
 
-from neptune_mlflow_plugin import MlflowPlugin
-
 try:
     from neptune import (
         Project,
@@ -70,13 +68,6 @@ def neptune_exporter_e2e() -> NeptuneExporter:
 def neptune_run() -> Run:
     with init_run(mode="debug") as run:
         yield run
-
-
-@pytest.fixture(scope="session")
-def mlflow(neptune_run) -> MlflowPlugin:
-    return MlflowPlugin(
-        neptune_run=neptune_run,
-    )
 
 
 @pytest.fixture(scope="session")
