@@ -123,6 +123,12 @@ class NeptuneTrackingStore(AbstractStore):
 
         super().__init__()
 
+        try:
+            self._login = os.getlogin()
+        except OSError:
+            # e.g. in CI
+            self._login = "runner"
+
     def search_experiments(
         self,
         view_type=ViewType.ACTIVE_ONLY,
@@ -170,7 +176,7 @@ class NeptuneTrackingStore(AbstractStore):
                 start_time=datetime.now(),
                 end_time=None,
                 experiment_id="mock_exp_id",
-                user_id=os.getlogin(),
+                user_id=self._login,
                 lifecycle_stage=LifecycleStage.ACTIVE,
                 status="running",
                 run_id=run_id,
@@ -189,7 +195,7 @@ class NeptuneTrackingStore(AbstractStore):
                 start_time=start_time,
                 end_time=None,
                 experiment_id=experiment_id,
-                user_id=os.getlogin(),
+                user_id=self._login,
                 lifecycle_stage=LifecycleStage.ACTIVE,
                 status="running",
                 artifact_uri=self.store_uri,
