@@ -95,12 +95,20 @@ def parse_neptune_kwargs_from_uri(uri: str) -> Dict[str, Any]:
             warnings.warn(f"Passed custom_run_id '{val}' will be ignored.")
             continue
 
+        # disregard passed id
+        if key == "with_id":
+            warnings.warn(f"Passed run id '{val}' will be ignored.")
+            continue
+
         # convert string booleans to booleans
         if val in {"True", "False"}:
             val = val != "False"
 
         if val == "None":
             val = None
+
+        if key == "flush_period":
+            val = float(val)
 
         neptune_kwargs[key] = val
 
