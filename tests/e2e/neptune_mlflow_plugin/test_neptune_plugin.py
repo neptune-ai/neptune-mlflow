@@ -34,7 +34,13 @@ def test_e2e():
         mlflow.log_figure(fig, "figure.png")
         mlflow.log_artifacts("docs", "my_docs")
 
-        mlflow.artifacts.download_artifacts(run_id=mlflow_run_id, artifact_path="my_docs", dst_path="my_docs")
+        mlflow.artifacts.download_artifacts(run_id=mlflow_run_id, artifact_path="my_docs", dst_path="downloaded_docs")
+
+        mlflow.log_artifact("CHANGELOG.md", "changelog")
+
+        mlflow.artifacts.download_artifacts(
+            run_id=mlflow_run_id, artifact_path="changelog", dst_path="downloaded_changelog"
+        )
 
     with Run(custom_run_id=mlflow_run_id) as neptune_run:
         assert neptune_run["sys/tags"].fetch() == {"myvalue", "mytag"}
@@ -44,4 +50,5 @@ def test_e2e():
         assert neptune_run.exists("image")
         assert neptune_run["some_key"].fetch_values().shape == (10, 3)
         assert neptune_run.exists("README")
-        assert os.path.isdir("my_docs")
+        assert os.path.isdir("downloaded_docs")
+        assert os.path.isdir("downloaded_changelog")
