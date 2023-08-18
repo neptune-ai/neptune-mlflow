@@ -52,6 +52,8 @@ def test_e2e():
     assert mlflow_run_id_1 != mlflow_run_id_2  # make sure those are two different Neptune runs
 
     with Run(custom_run_id=mlflow_run_id_1) as neptune_run:
+        neptune_run.sync()
+
         assert neptune_run["sys/name"].fetch() == "test_name"
         assert neptune_run["sys/description"].fetch() == "test description"
         assert neptune_run.exists("test_monitoring")
@@ -65,6 +67,8 @@ def test_e2e():
         assert neptune_run.exists("README")
 
     with Run(custom_run_id=mlflow_run_id_2) as neptune_run:
+        neptune_run.sync()
+
         assert neptune_run["sys/name"].fetch() == "test_name"
         assert neptune_run["sys/description"].fetch() == "test description"
         assert neptune_run.exists("test_monitoring")
