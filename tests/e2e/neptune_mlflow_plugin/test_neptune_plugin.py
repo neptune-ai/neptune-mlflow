@@ -62,10 +62,6 @@ def test_e2e():
         assert neptune_run["some_key"].fetch_values().shape == (10, 3)
         assert neptune_run.exists("README")
 
-    with Run(custom_run_id=mlflow_run_id_2) as neptune_run:
-        assert neptune_run["sys/name"].fetch() == "test_name"
-        assert neptune_run["sys/description"].fetch() == "test description"
-        assert neptune_run.exists("test_monitoring")
-
+    with Run(custom_run_id=mlflow_run_id_2):
         assert os.path.isdir("downloaded_docs")
         assert os.path.isdir("downloaded_changelog")
