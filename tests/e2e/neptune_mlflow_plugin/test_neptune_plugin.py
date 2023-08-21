@@ -15,6 +15,8 @@ def test_e2e():
     )
     mlflow.set_tracking_uri(uri)
 
+    assert mlflow.get_tracking_uri() == uri
+
     with mlflow.start_run() as run:
         mlflow_run_id_1 = run.info.run_id
 
@@ -52,12 +54,6 @@ def test_e2e():
     assert mlflow_run_id_1 != mlflow_run_id_2  # make sure those are two different Neptune runs
 
     with Run(custom_run_id=mlflow_run_id_1) as neptune_run:
-        neptune_run.sync()
-
-        assert neptune_run["sys/name"].fetch() == "test_name"
-        assert neptune_run["sys/description"].fetch() == "test description"
-        assert neptune_run.exists("test_monitoring")
-
         assert neptune_run["sys/tags"].fetch() == {"myvalue", "mytag"}
         assert float(neptune_run["lr"].fetch()) == 0.0001
         assert neptune_run.exists("figure")
@@ -67,8 +63,6 @@ def test_e2e():
         assert neptune_run.exists("README")
 
     with Run(custom_run_id=mlflow_run_id_2) as neptune_run:
-        neptune_run.sync()
-
         assert neptune_run["sys/name"].fetch() == "test_name"
         assert neptune_run["sys/description"].fetch() == "test description"
         assert neptune_run.exists("test_monitoring")
