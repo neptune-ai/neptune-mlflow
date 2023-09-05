@@ -1,6 +1,21 @@
+#
+# Copyright (c) 2023, Neptune Labs Sp. z o.o.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 import os
 import uuid
-import warnings
 import zipfile
 from datetime import datetime
 from pathlib import Path
@@ -32,16 +47,10 @@ from mlflow.utils.file_utils import local_file_uri_to_path
 from neptune import Run
 from neptune.attributes import FileSet
 
-
-def singleton(class_):
-    instances = {}
-
-    def getinstance(*args, **kwargs):
-        if class_ not in instances:
-            instances[class_] = class_(*args, **kwargs)
-        return instances[class_]
-
-    return getinstance
+from neptune_mlflow_plugin.impl.utils import (
+    parse_neptune_kwargs_from_uri,
+    singleton,
+)
 
 
 @singleton
@@ -72,49 +81,6 @@ class RunProvider:
         return self._neptune_run
 
 
-def parse_neptune_kwargs_from_uri(uri: str) -> Dict[str, Any]:
-    neptune_kwargs = {}
-
-    uri_split = uri.split("://")
-    assert len(uri_split) == 2
-
-    init_args = uri_split[1]  # first argument will be a scheme e.g. 'neptune-plugin'
-
-    init_args = init_args.split("/")
-
-    for arg in init_args:
-
-        # empty string
-        if not arg:
-            continue
-
-        key, val = arg.split("=")
-
-        # disregard passed custom_run_id
-        if key == "custom_run_id":
-            warnings.warn(f"Passed custom_run_id '{val}' will be ignored.")
-            continue
-
-        # disregard passed id
-        if key == "with_id":
-            warnings.warn(f"Passed run id '{val}' will be ignored.")
-            continue
-
-        # convert string booleans to booleans
-        if val in {"True", "False"}:
-            val = val != "False"
-
-        if val == "None":
-            val = None
-
-        if key == "flush_period":
-            val = float(val)
-
-        neptune_kwargs[key] = val
-
-    return neptune_kwargs
-
-
 class NeptuneTrackingStore(AbstractStore):
     def __init__(self, store_uri: Optional[str], artifact_uri: Optional[str]):
         self.store_uri = store_uri
@@ -136,6 +102,13 @@ class NeptuneTrackingStore(AbstractStore):
         except OSError:
             # e.g. in CI
             self._login = "runner"
+
+    @property
+    def neptune_run(self) -> Run:
+        if not self._neptune_run:
+            self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
+
+        return self._neptune_run
 
     def search_experiments(
         self,
@@ -229,15 +202,11 @@ class NeptuneTrackingStore(AbstractStore):
         pass
 
     def log_batch(self, run_id, metrics, params, tags):
-        self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
-
         for metric in metrics:
-            self._neptune_run[f"metrics/{metric.key}"].append(
-                metric.value, step=metric.step, timestamp=metric.timestamp
-            )
+            self.neptune_run[f"metrics/{metric.key}"].append(metric.value, step=metric.step, timestamp=metric.timestamp)
 
         for param in params:
-            self._neptune_run[f"params/{param.key}"].append(param.value)
+            self.neptune_run[f"params/{param.key}"].append(param.value)
 
     def log_inputs(self, run_id: str, datasets: Optional[List[DatasetInput]] = None):
         pass
@@ -246,24 +215,18 @@ class NeptuneTrackingStore(AbstractStore):
         pass
 
     def log_metric(self, run_id, metric: Metric):
-        self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
-
-        self._neptune_run[metric.key].append(metric.value, step=metric.step, timestamp=metric.timestamp / 1e3)
+        self.neptune_run[metric.key].append(metric.value, step=metric.step, timestamp=metric.timestamp / 1e3)
 
     def log_param(self, run_id, param: Param):
-        self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
-
-        self._neptune_run[param.key] = param.value
+        self.neptune_run[param.key] = param.value
 
     def set_tag(self, run_id, tag):
-        self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
-
         if tag.key:
             neptune_tags = [tag.key, tag.value]
         else:
             neptune_tags = tag.value
 
-        self._neptune_run["sys/tags"].add(neptune_tags)
+        self.neptune_run["sys/tags"].add(neptune_tags)
 
 
 class NeptuneArtifactRepo(ArtifactRepository):
@@ -279,38 +242,41 @@ class NeptuneArtifactRepo(ArtifactRepository):
 
         self._neptune_run: Optional[Run] = None
 
+    @property
+    def neptune_run(self) -> Run:
+        if not self._neptune_run:
+            self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
+
+        return self._neptune_run
+
     def log_artifact(self, local_file, artifact_path=None):
-        self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
 
         target_path = artifact_path if artifact_path else Path(local_file).stem
 
-        self._neptune_run[target_path].upload(local_file)
+        self.neptune_run[target_path].upload(local_file)
 
-        self._neptune_run.sync()
+        self.neptune_run.sync()
 
     def log_artifacts(self, local_dir, artifact_path=None):
-        self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
-
         target_path = artifact_path if artifact_path else Path(local_dir).stem
 
-        self._neptune_run[target_path].upload_files(os.path.join(local_dir, "*"))
+        self.neptune_run[target_path].upload_files(os.path.join(local_dir, "*"))
 
-        self._neptune_run.sync()
+        self.neptune_run.sync()
 
     def list_artifacts(self, path):
-        self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
         result = []
 
-        for entry in self._neptune_run[path].list_fileset_files():
+        for entry in self.neptune_run[path].list_fileset_files():
             result.append(FileInfo(path=entry.name, is_dir=(entry.file_type == "directory"), file_size=entry.size))
 
         return result
 
     def download_artifacts(self, artifact_path, dst_path=None):
-        self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
-        self._neptune_run[artifact_path].download(destination=dst_path)
 
-        if isinstance(self._neptune_run.get_structure()[artifact_path], FileSet):
+        self.neptune_run[artifact_path].download(destination=dst_path)
+
+        if isinstance(self.neptune_run.get_structure()[artifact_path], FileSet):
             if dst_path:
                 local_path = os.path.join(dst_path, artifact_path + ".zip")
             else:
