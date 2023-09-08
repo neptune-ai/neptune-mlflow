@@ -19,12 +19,14 @@ __all__ = [
     "parse_neptune_kwargs_from_uri",
 ]
 
+import base64
+import json
 import warnings
 from typing import (
     Any,
     AnyStr,
     Dict,
-    Set,
+    List,
 )
 from urllib.parse import urlparse
 
@@ -41,57 +43,31 @@ def singleton(class_):
 
 
 def parse_neptune_kwargs_from_uri(uri: str) -> Dict[str, Any]:
-    neptune_kwargs = {}
-
     uri_parsed = urlparse(uri)
 
     project_str = uri_parsed.netloc
-    kwarg_str = uri_parsed.path
+    kwarg_str = uri_parsed.path.replace("/", "")
 
     project = project_str.split("=")[1]
     if project == "None":
         project = None
 
+    neptune_kwargs = json.loads(base64.b64decode(kwarg_str).decode("utf-8"))
+
     neptune_kwargs["project"] = project
 
-    for arg in kwarg_str.split("/"):
+    if "custom_run_id" in neptune_kwargs:
+        val = neptune_kwargs.pop("custom_run_id")
+        warnings.warn(f"Passed custom_run_id '{val}' will be ignored.")
 
-        # empty string
-        if not arg:
-            continue
-
-        key, val = arg.split("=")
-
-        # disregard passed custom_run_id
-        if key == "custom_run_id":
-            warnings.warn(f"Passed custom_run_id '{val}' will be ignored.")
-            continue
-
-        # disregard passed id
-        if key == "with_id":
-            warnings.warn(f"Passed run id '{val}' will be ignored.")
-            continue
-
-        # parse tags
-        if key == "tags":
-            val = _parse_tags(val)
-
-        # convert string booleans to booleans
-        if val in {"True", "False"}:
-            val = val != "False"
-
-        if val == "None":
-            val = None
-
-        if key == "flush_period":
-            val = float(val)
-
-        neptune_kwargs[key] = val
+    if "with_id" in neptune_kwargs:
+        val = neptune_kwargs.pop("with_id")
+        warnings.warn(f"Passed run id '{val}' will be ignored.")
 
     return neptune_kwargs
 
 
-def _parse_tags(tag_str: AnyStr) -> Set[AnyStr]:
+def _parse_tags(tag_str: AnyStr) -> List[AnyStr]:
     """
     Parse a string representation of tags
     Args:
@@ -99,10 +75,8 @@ def _parse_tags(tag_str: AnyStr) -> Set[AnyStr]:
         Can be either a string representation of a single tag, or a list
 
     Returns:
-        Set of tags
+        List of tags
     """
-    result = set()
-
     if tag_str[0] in ["[", "{"] and tag_str[-1] in ["]", "}"]:
         # parse a list or set of tags e.g. "['tag1', 'tag2']" or "{'tag1', 'tag2'}"
         tag_str = tag_str[1:-1]
@@ -112,8 +86,5 @@ def _parse_tags(tag_str: AnyStr) -> Set[AnyStr]:
         # single tag e.g. "'tag1'"
         tags = [tag_str]
 
-    for tag in tags:
-        tag = tag.replace("'", "").strip()  # "'tag1'" -> "tag1"
-        result.add(tag)
-
+    result = [tag.replace("'", "").strip() for tag in tags]  # "'tag1'" -> "tag1"
     return result

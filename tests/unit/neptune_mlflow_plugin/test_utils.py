@@ -1,3 +1,4 @@
+from neptune_mlflow_plugin import create_neptune_tracking_uri
 from neptune_mlflow_plugin.impl.utils import (
     _parse_tags,
     parse_neptune_kwargs_from_uri,
@@ -12,9 +13,9 @@ def test_parse_tags():
     ]
 
     expected_tags = [
-        {"tag1", "tag2"},
-        {"tag1", "tag2", "tag3"},
-        {"single_tag"},
+        ["tag1", "tag2"],
+        ["tag1", "tag2", "tag3"],
+        ["single_tag"],
     ]
 
     for given, expected in zip(tag_strings, expected_tags):
@@ -23,7 +24,12 @@ def test_parse_tags():
 
 def test_parse_uri():
     # given
-    neptune_uri = "neptune-plugin://project=test_project/mode=debug/tags=['tag1', 'tag2']/capture_stdout=True"
+    neptune_uri = create_neptune_tracking_uri(
+        project="test_project",
+        mode="debug",
+        tags=["tag1", "tag2"],
+        capture_stdout=True,
+    )
 
     # when
     neptune_kwargs = parse_neptune_kwargs_from_uri(neptune_uri)
@@ -32,6 +38,6 @@ def test_parse_uri():
     assert neptune_kwargs == {
         "project": "test_project",
         "mode": "debug",
-        "tags": {"tag1", "tag2"},
+        "tags": ["tag1", "tag2"],
         "capture_stdout": True,
     }

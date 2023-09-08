@@ -16,14 +16,24 @@
 
 __all__ = ["create_neptune_tracking_uri"]
 
+import base64
+import json
 from typing import Optional
 from urllib.parse import urlunsplit
 
-PLUGIN_SCHEME = "neptune-plugin"
+PLUGIN_SCHEME = "neptune"
 
 
 def create_neptune_tracking_uri(project: Optional[str] = None, **kwargs) -> str:
-    path = "/".join([f"{key}={value}" for key, value in kwargs.items()])
+    if "tags" in kwargs and isinstance(kwargs["tags"], set):
+        tags = [tag for tag in kwargs["tags"]]  # set object is not JSON serializable
+
+        kwargs["tags"] = tags
+
+    kwargs_str = json.dumps(kwargs)
+
+    path = base64.b64encode(kwargs_str.encode("utf-8")).decode("utf-8")
 
     components = (PLUGIN_SCHEME, f"project={project}", path, "", "")
+
     return urlunsplit(components)
