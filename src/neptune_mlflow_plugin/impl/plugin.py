@@ -17,10 +17,11 @@
 import os
 import uuid
 import zipfile
+from collections import OrderedDict
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import (
-    Any,
     Dict,
     List,
     Optional,
@@ -38,6 +39,7 @@ from mlflow.entities import Run as MlflowRun
 from mlflow.entities import (
     RunData,
     RunInfo,
+    RunStatus,
     ViewType,
 )
 from mlflow.store.artifact.artifact_repo import ArtifactRepository
@@ -47,38 +49,16 @@ from mlflow.utils.file_utils import local_file_uri_to_path
 from neptune import Run
 from neptune.attributes import FileSet
 
-from neptune_mlflow_plugin.impl.utils import (
-    parse_neptune_kwargs_from_uri,
-    singleton,
-)
+from neptune_mlflow_plugin.impl.utils import parse_neptune_kwargs_from_uri
+
+_ACTIVE_NEPTUNE_RUNS: OrderedDict[str, Run] = OrderedDict()
 
 
-@singleton
-class RunProvider:
-    def __init__(self, neptune_kwargs: Dict[str, Any]):
-        self._neptune_kwargs = neptune_kwargs
-        self._mlflow_run_id = None
+def _get_active_run_id() -> Optional[str]:
+    if len(_ACTIVE_NEPTUNE_RUNS) == 0:
+        return None
 
-        self._neptune_run: Optional[Run] = None
-
-    def set_mlflow_run_id(self, run_id) -> None:
-        self._mlflow_run_id = run_id
-
-    @property
-    def mlflow_run_id(self) -> str:
-        return self._mlflow_run_id
-
-    def get_or_create_neptune_run(self, run_id: str) -> Run:
-        if self._neptune_run:
-            if self._neptune_run["sys/custom_run_id"].fetch() == run_id:
-                return self._neptune_run
-            else:  # new mlflow run
-                self._neptune_run.sync()
-                self._neptune_run.stop()
-
-        # if reached here, there is no active neptune run
-        self._neptune_run = Run(custom_run_id=run_id, **self._neptune_kwargs)
-        return self._neptune_run
+    return next(reversed(_ACTIVE_NEPTUNE_RUNS))
 
 
 class NeptuneTrackingStore(AbstractStore):
@@ -88,12 +68,7 @@ class NeptuneTrackingStore(AbstractStore):
 
         self._neptune_kwargs = parse_neptune_kwargs_from_uri(store_uri)
 
-        self._run_provider = RunProvider(self._neptune_kwargs)
-
-        self._api_token = self._neptune_kwargs.pop("api_token", None)
-        self._project = self._neptune_kwargs.pop("project", None)
-
-        self._neptune_run: Optional[Run] = None
+        self._active_runs: Dict[str, Run] = {}
 
         super().__init__()
 
@@ -103,12 +78,14 @@ class NeptuneTrackingStore(AbstractStore):
             # e.g. in CI
             self._login = "runner"
 
-    @property
-    def neptune_run(self) -> Run:
-        if not self._neptune_run:
-            self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
+    def get_neptune_run(self, run_id: str) -> Run:
+        if run_id in _ACTIVE_NEPTUNE_RUNS:
+            return _ACTIVE_NEPTUNE_RUNS[run_id]
 
-        return self._neptune_run
+        kwargs = deepcopy(self._neptune_kwargs)
+        # update kwargs here
+
+        _ACTIVE_NEPTUNE_RUNS[run_id] = Run(**kwargs)
 
     def search_experiments(
         self,
@@ -167,7 +144,14 @@ class NeptuneTrackingStore(AbstractStore):
         )
 
     def update_run_info(self, run_id, run_status, end_time, run_name):
-        ...
+        if run_name not in (RunStatus.FAILED, RunStatus.KILLED, RunStatus.FINISHED):
+            return
+
+        run = _ACTIVE_NEPTUNE_RUNS[run_id]
+        run.sync()
+        run.stop()
+
+        del _ACTIVE_NEPTUNE_RUNS[run_id]
 
     def create_run(self, experiment_id, user_id, start_time, tags, run_name):
         run = MlflowRun(
@@ -185,7 +169,8 @@ class NeptuneTrackingStore(AbstractStore):
             run_data=RunData(),
         )
 
-        self._run_provider.set_mlflow_run_id(run.info.run_id)
+        neptune_run = Run(custom_run_id=run.info.run_id, **self._neptune_kwargs)
+        _ACTIVE_NEPTUNE_RUNS[run.info.run_id] = neptune_run
 
         return run
 
@@ -202,11 +187,11 @@ class NeptuneTrackingStore(AbstractStore):
         pass
 
     def log_batch(self, run_id, metrics, params, tags):
+        neptune_run = self.get_neptune_run(run_id)
         for metric in metrics:
-            self.neptune_run[f"metrics/{metric.key}"].append(metric.value, step=metric.step, timestamp=metric.timestamp)
+            neptune_run[f"metrics/{metric.key}"].append(metric.value, step=metric.step, timestamp=metric.timestamp)
 
-        for param in params:
-            self.neptune_run[f"params/{param.key}"].append(param.value)
+        neptune_run["params"].append({param.key: param.value for param in params})
 
     def log_inputs(self, run_id: str, datasets: Optional[List[DatasetInput]] = None):
         pass
@@ -215,10 +200,12 @@ class NeptuneTrackingStore(AbstractStore):
         pass
 
     def log_metric(self, run_id, metric: Metric):
-        self.neptune_run[metric.key].append(metric.value, step=metric.step, timestamp=metric.timestamp / 1e3)
+        neptune_run = self.get_neptune_run(run_id)
+        neptune_run[metric.key].append(metric.value, step=metric.step, timestamp=metric.timestamp / 1e3)
 
     def log_param(self, run_id, param: Param):
-        self.neptune_run[param.key] = param.value
+        neptune_run = self.get_neptune_run(run_id)
+        neptune_run[param.key] = param.value
 
     def set_tag(self, run_id, tag):
         if tag.key:
@@ -226,7 +213,8 @@ class NeptuneTrackingStore(AbstractStore):
         else:
             neptune_tags = tag.value
 
-        self.neptune_run["sys/tags"].add(neptune_tags)
+        neptune_run = self.get_neptune_run(run_id)
+        neptune_run["sys/tags"].add(neptune_tags)
 
 
 class NeptuneArtifactRepo(ArtifactRepository):
@@ -235,19 +223,14 @@ class NeptuneArtifactRepo(ArtifactRepository):
         self._artifact_dir = local_file_uri_to_path(self.artifact_uri)
         self._neptune_kwargs = parse_neptune_kwargs_from_uri(self.artifact_uri)
 
-        self._run_provider = RunProvider(self._neptune_kwargs)
-
-        self._api_token = self._neptune_kwargs.pop("api_token", None)
-        self._project = self._neptune_kwargs.pop("project", None)
-
-        self._neptune_run: Optional[Run] = None
-
     @property
     def neptune_run(self) -> Run:
-        if not self._neptune_run:
-            self._neptune_run = self._run_provider.get_or_create_neptune_run(self._run_provider.mlflow_run_id)
+        run_id = _get_active_run_id()
 
-        return self._neptune_run
+        if run_id:
+            return _ACTIVE_NEPTUNE_RUNS[run_id]
+
+        return Run(**self._neptune_kwargs)
 
     def log_artifact(self, local_file, artifact_path=None):
 
@@ -265,12 +248,10 @@ class NeptuneArtifactRepo(ArtifactRepository):
         self.neptune_run.sync()
 
     def list_artifacts(self, path):
-        result = []
-
-        for entry in self.neptune_run[path].list_fileset_files():
-            result.append(FileInfo(path=entry.name, is_dir=(entry.file_type == "directory"), file_size=entry.size))
-
-        return result
+        return [
+            FileInfo(path=entry.name, is_dir=(entry.file_type == "directory"), file_size=entry.size)
+            for entry in self.neptune_run[path].list_fileset_files()
+        ]
 
     def download_artifacts(self, artifact_path, dst_path=None):
 
