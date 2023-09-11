@@ -17,12 +17,10 @@
 import os
 import uuid
 import zipfile
-from collections import OrderedDict
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import (
-    Dict,
     List,
     Optional,
 )
@@ -49,16 +47,10 @@ from mlflow.utils.file_utils import local_file_uri_to_path
 from neptune import Run
 from neptune.attributes import FileSet
 
-from neptune_mlflow_plugin.impl.utils import parse_neptune_kwargs_from_uri
-
-_ACTIVE_NEPTUNE_RUNS: OrderedDict[str, Run] = OrderedDict()
-
-
-def _get_active_run_id() -> Optional[str]:
-    if len(_ACTIVE_NEPTUNE_RUNS) == 0:
-        return None
-
-    return next(reversed(_ACTIVE_NEPTUNE_RUNS))
+from neptune_mlflow_plugin.impl.utils import (
+    encode_config,
+    parse_neptune_kwargs_from_uri,
+)
 
 
 class NeptuneTrackingStore(AbstractStore):
@@ -68,7 +60,7 @@ class NeptuneTrackingStore(AbstractStore):
 
         self._neptune_kwargs = parse_neptune_kwargs_from_uri(store_uri)
 
-        self._active_runs: Dict[str, Run] = {}
+        self._neptune_run: Optional[Run] = None
 
         super().__init__()
 
@@ -79,13 +71,10 @@ class NeptuneTrackingStore(AbstractStore):
             self._login = "runner"
 
     def get_neptune_run(self, run_id: str) -> Run:
-        if run_id in _ACTIVE_NEPTUNE_RUNS:
-            return _ACTIVE_NEPTUNE_RUNS[run_id]
+        if not self._neptune_run:
+            self._neptune_run = Run(custom_run_id=run_id, **self._neptune_kwargs)
 
-        kwargs = deepcopy(self._neptune_kwargs)
-        # update kwargs here
-
-        _ACTIVE_NEPTUNE_RUNS[run_id] = Run(**kwargs)
+        return self._neptune_run
 
     def search_experiments(
         self,
@@ -128,6 +117,12 @@ class NeptuneTrackingStore(AbstractStore):
         pass
 
     def get_run(self, run_id):
+        config = deepcopy(self._neptune_kwargs)
+
+        # inject run ID to store URI
+        config["run_id"] = run_id
+        store_uri = encode_config(config)
+
         return MlflowRun(
             run_info=RunInfo(
                 run_uuid=uuid.uuid4(),
@@ -138,20 +133,19 @@ class NeptuneTrackingStore(AbstractStore):
                 lifecycle_stage=LifecycleStage.ACTIVE,
                 status="running",
                 run_id=run_id,
-                artifact_uri=self.store_uri,
+                artifact_uri=store_uri,
             ),
             run_data=RunData(),
         )
 
     def update_run_info(self, run_id, run_status, end_time, run_name):
-        if run_name not in (RunStatus.FAILED, RunStatus.KILLED, RunStatus.FINISHED):
+        if run_status not in (RunStatus.FAILED, RunStatus.KILLED, RunStatus.FINISHED):
+            return
+        if not self._neptune_run:
             return
 
-        run = _ACTIVE_NEPTUNE_RUNS[run_id]
-        run.sync()
-        run.stop()
-
-        del _ACTIVE_NEPTUNE_RUNS[run_id]
+        self._neptune_run.sync()
+        self._neptune_run.stop()
 
     def create_run(self, experiment_id, user_id, start_time, tags, run_name):
         run = MlflowRun(
@@ -169,9 +163,7 @@ class NeptuneTrackingStore(AbstractStore):
             run_data=RunData(),
         )
 
-        neptune_run = Run(custom_run_id=run.info.run_id, **self._neptune_kwargs)
-        _ACTIVE_NEPTUNE_RUNS[run.info.run_id] = neptune_run
-
+        self._neptune_run = Run(custom_run_id=run.info.run_id, **self._neptune_kwargs)
         return run
 
     def delete_run(self, run_id):
@@ -222,18 +214,18 @@ class NeptuneArtifactRepo(ArtifactRepository):
         super(NeptuneArtifactRepo, self).__init__(*args, **kwargs)
         self._artifact_dir = local_file_uri_to_path(self.artifact_uri)
         self._neptune_kwargs = parse_neptune_kwargs_from_uri(self.artifact_uri)
+        self._run_id = self._neptune_kwargs.pop("run_id")
+
+        self._neptune_run: Optional[Run] = None
 
     @property
     def neptune_run(self) -> Run:
-        run_id = _get_active_run_id()
+        if not self._neptune_run:
+            self._neptune_run = Run(custom_run_id=self._run_id, **self._neptune_kwargs)
 
-        if run_id:
-            return _ACTIVE_NEPTUNE_RUNS[run_id]
-
-        return Run(**self._neptune_kwargs)
+        return self._neptune_run
 
     def log_artifact(self, local_file, artifact_path=None):
-
         target_path = artifact_path if artifact_path else Path(local_file).stem
 
         self.neptune_run[target_path].upload(local_file)

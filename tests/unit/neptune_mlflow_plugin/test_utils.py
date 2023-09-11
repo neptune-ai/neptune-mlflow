@@ -1,5 +1,9 @@
 from neptune_mlflow_plugin import create_neptune_tracking_uri
-from neptune_mlflow_plugin.impl.utils import parse_neptune_kwargs_from_uri
+from neptune_mlflow_plugin.impl.utils import (
+    decode_config,
+    encode_config,
+    parse_neptune_kwargs_from_uri,
+)
 
 
 def test_parse_uri():
@@ -45,3 +49,18 @@ def test_parse_uri_warning(recwarn):
         "tags": ["tag1", "tag2"],
         "capture_stdout": True,
     }
+
+
+def test_config_encode_decode():
+    # given
+    original_config = {
+        "val1": True,
+        "val2": [1, 2, 4],
+        "val3": 56.7,
+        "val4": "test",
+    }
+
+    # when
+    config = decode_config(encode_config(config=original_config))
+
+    assert original_config == config

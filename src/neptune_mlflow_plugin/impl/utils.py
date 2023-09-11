@@ -16,6 +16,8 @@
 
 __all__ = [
     "parse_neptune_kwargs_from_uri",
+    "encode_config",
+    "decode_config",
 ]
 
 import base64
@@ -25,15 +27,50 @@ from typing import (
     Any,
     Dict,
 )
-from urllib.parse import urlparse
+from urllib.parse import (
+    urlparse,
+    urlunsplit,
+)
+
+PLUGIN_SCHEME = "neptune"
+
+
+def encode_config(config: Dict[str, Any]) -> str:
+    """
+    Encodes configuration in the form of a dictionary into a string using base64.
+    Args:
+        config: dictionary to encode
+
+    Returns:
+        encoded configuration in the string form
+    """
+    config_str = json.dumps(config)
+
+    path = base64.b64encode(config_str.encode("utf-8")).decode("utf-8")
+
+    components = (PLUGIN_SCHEME, "", path, "", "")
+
+    return urlunsplit(components)
+
+
+def decode_config(uri: str) -> Dict[str, Any]:
+    """
+    Decodes configuration from string URI
+    Args:
+        uri: URI that encodes configuration
+
+    Returns:
+        decoded configuration in a dictionary form
+    """
+    uri_parsed = urlparse(uri)
+
+    config_str = uri_parsed.path.replace("/", "")
+
+    return json.loads(base64.b64decode(config_str).decode("utf-8"))
 
 
 def parse_neptune_kwargs_from_uri(uri: str) -> Dict[str, Any]:
-    uri_parsed = urlparse(uri)
-
-    kwarg_str = uri_parsed.path.replace("/", "")
-
-    neptune_kwargs: Dict = json.loads(base64.b64decode(kwarg_str).decode("utf-8"))
+    neptune_kwargs = decode_config(uri)
 
     if "custom_run_id" in neptune_kwargs:
         val = neptune_kwargs.pop("custom_run_id")

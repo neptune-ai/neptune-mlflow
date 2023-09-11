@@ -16,14 +16,11 @@
 
 __all__ = ["create_neptune_tracking_uri"]
 
-import base64
 import functools
-import json
-from urllib.parse import urlunsplit
 
 import neptune
 
-PLUGIN_SCHEME = "neptune"
+from neptune_mlflow_plugin.impl.utils import encode_config
 
 
 @functools.wraps(neptune.init_run)
@@ -32,10 +29,4 @@ def create_neptune_tracking_uri(**kwargs) -> str:
         list(kwargs["tags"]) if ("tags" in kwargs and isinstance(kwargs["tags"], set)) else kwargs.get("tags")
     )
 
-    kwargs_str = json.dumps(kwargs)
-
-    path = base64.b64encode(kwargs_str.encode("utf-8")).decode("utf-8")
-
-    components = (PLUGIN_SCHEME, "", path, "", "")
-
-    return urlunsplit(components)
+    return encode_config(kwargs)
