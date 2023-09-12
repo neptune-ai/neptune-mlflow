@@ -216,7 +216,26 @@ class NeptuneArtifactRepo(ArtifactRepository):
         self._neptune_kwargs = parse_neptune_kwargs_from_uri(self.artifact_uri)
         self._run_id = self._neptune_kwargs.pop("run_id")
 
+        # artifact-related run instances do not need to report those
+        self._neptune_kwargs.update(
+            {
+                "capture_stderr": False,
+                "capture_stdout": False,
+                "capture_hardware_metrics": False,
+            }
+        )
+
         self._neptune_run: Optional[Run] = None
+
+    def _check_if_path_is_fileset(self, path: str) -> bool:
+        path_parts = Path(path).parts
+
+        structure = self.neptune_run.get_structure()
+
+        final_structure = structure
+        for part in path_parts:
+            final_structure = final_structure[part]
+        return isinstance(final_structure, FileSet)
 
     @property
     def neptune_run(self) -> Run:
@@ -246,12 +265,13 @@ class NeptuneArtifactRepo(ArtifactRepository):
         ]
 
     def download_artifacts(self, artifact_path, dst_path=None):
-
         self.neptune_run[artifact_path].download(destination=dst_path)
 
-        if isinstance(self.neptune_run.get_structure()[artifact_path], FileSet):
+        is_fileset = self._check_if_path_is_fileset(artifact_path)
+
+        if is_fileset:
             if dst_path:
-                local_path = os.path.join(dst_path, artifact_path + ".zip")
+                local_path = os.path.join(dst_path, Path(artifact_path).stem + ".zip")
             else:
                 local_path = artifact_path
 
