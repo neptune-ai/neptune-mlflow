@@ -42,9 +42,11 @@ def test_e2e():
 
     with mlflow.start_run() as run:
         mlflow_run_id_2 = run.info.run_id
-        mlflow.log_artifacts("docs", "my_docs")
+        mlflow.log_artifacts("docs", "files/my_docs")
 
-        mlflow.artifacts.download_artifacts(run_id=mlflow_run_id_2, artifact_path="my_docs", dst_path="downloaded_docs")
+        mlflow.artifacts.download_artifacts(
+            run_id=mlflow_run_id_2, artifact_path="files/my_docs", dst_path="downloaded_docs"
+        )
 
         mlflow.log_artifact("CHANGELOG.md", "changelog")
 
