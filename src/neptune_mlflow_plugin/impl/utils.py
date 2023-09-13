@@ -18,11 +18,15 @@ __all__ = [
     "parse_neptune_kwargs_from_uri",
     "encode_config",
     "decode_config",
+    "get_login",
+    "check_if_path_is_fileset",
 ]
 
 import base64
 import json
+import os
 import warnings
+from pathlib import Path
 from typing import (
     Any,
     Dict,
@@ -32,7 +36,12 @@ from urllib.parse import (
     urlunsplit,
 )
 
+from neptune import Run
+from neptune.attributes import FileSet
+
 PLUGIN_SCHEME = "neptune"
+DEFAULT_LOGIN = "runner"
+DEFAULT_HOST = "track"
 
 
 def encode_config(config: Dict[str, Any]) -> str:
@@ -48,7 +57,7 @@ def encode_config(config: Dict[str, Any]) -> str:
 
     path = base64.b64encode(config_str.encode("utf-8")).decode("utf-8")
 
-    components = (PLUGIN_SCHEME, "", path, "", "")
+    components = (PLUGIN_SCHEME, DEFAULT_HOST, path, "", "")
 
     return urlunsplit(components)
 
@@ -81,3 +90,22 @@ def parse_neptune_kwargs_from_uri(uri: str) -> Dict[str, Any]:
         warnings.warn(f"Passed run id '{val}' will be ignored.")
 
     return neptune_kwargs
+
+
+def get_login() -> str:
+    try:
+        return os.getlogin()
+    except OSError:
+        # e.g. in CI
+        return DEFAULT_LOGIN
+
+
+def check_if_path_is_fileset(neptune_run: Run, path: str) -> bool:
+    path_parts = Path(path).parts
+
+    structure = neptune_run.get_structure()
+
+    final_structure = structure
+    for part in path_parts:
+        final_structure = final_structure[part]
+    return isinstance(final_structure, FileSet)

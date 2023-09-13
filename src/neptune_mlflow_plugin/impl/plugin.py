@@ -45,10 +45,11 @@ from mlflow.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
 from mlflow.store.tracking.abstract_store import AbstractStore
 from mlflow.utils.file_utils import local_file_uri_to_path
 from neptune import Run
-from neptune.attributes import FileSet
 
 from neptune_mlflow_plugin.impl.utils import (
+    check_if_path_is_fileset,
     encode_config,
+    get_login,
     parse_neptune_kwargs_from_uri,
 )
 
@@ -62,16 +63,15 @@ class NeptuneTrackingStore(AbstractStore):
 
         self._neptune_run: Optional[Run] = None
 
+        self._current_run_id: Optional[str] = None
+
         super().__init__()
 
-        try:
-            self._login = os.getlogin()
-        except OSError:
-            # e.g. in CI
-            self._login = "runner"
+        self._login = get_login()
 
     def get_neptune_run(self, run_id: str) -> Run:
         if not self._neptune_run:
+            self._current_run_id = run_id
             self._neptune_run = Run(custom_run_id=run_id, **self._neptune_kwargs)
 
         return self._neptune_run
@@ -117,6 +117,11 @@ class NeptuneTrackingStore(AbstractStore):
         pass
 
     def get_run(self, run_id):
+        if self._neptune_run and run_id != self._current_run_id:
+            self._neptune_run.sync()
+            self._neptune_run.stop()
+            self._current_run_id = run_id
+            self._neptune_run = Run(custom_run_id=run_id, **self._neptune_kwargs)
         config = deepcopy(self._neptune_kwargs)
 
         # inject run ID to store URI
@@ -162,7 +167,11 @@ class NeptuneTrackingStore(AbstractStore):
             ),
             run_data=RunData(),
         )
+        if self._neptune_run:
+            self._neptune_run.sync()
+            self._neptune_run.stop()
 
+        self._current_run_id = run.info.run_id
         self._neptune_run = Run(custom_run_id=run.info.run_id, **self._neptune_kwargs)
         return run
 
@@ -227,16 +236,6 @@ class NeptuneArtifactRepo(ArtifactRepository):
 
         self._neptune_run: Optional[Run] = None
 
-    def _check_if_path_is_fileset(self, path: str) -> bool:
-        path_parts = Path(path).parts
-
-        structure = self.neptune_run.get_structure()
-
-        final_structure = structure
-        for part in path_parts:
-            final_structure = final_structure[part]
-        return isinstance(final_structure, FileSet)
-
     @property
     def neptune_run(self) -> Run:
         if not self._neptune_run:
@@ -247,16 +246,12 @@ class NeptuneArtifactRepo(ArtifactRepository):
     def log_artifact(self, local_file, artifact_path=None):
         target_path = artifact_path if artifact_path else Path(local_file).stem
 
-        self.neptune_run[target_path].upload(local_file)
-
-        self.neptune_run.sync()
+        self.neptune_run[target_path].upload(local_file, wait=True)
 
     def log_artifacts(self, local_dir, artifact_path=None):
         target_path = artifact_path if artifact_path else Path(local_dir).stem
 
-        self.neptune_run[target_path].upload_files(os.path.join(local_dir, "*"))
-
-        self.neptune_run.sync()
+        self.neptune_run[target_path].upload_files(os.path.join(local_dir, "*"), wait=True)
 
     def list_artifacts(self, path):
         return [
@@ -267,7 +262,7 @@ class NeptuneArtifactRepo(ArtifactRepository):
     def download_artifacts(self, artifact_path, dst_path=None):
         self.neptune_run[artifact_path].download(destination=dst_path)
 
-        is_fileset = self._check_if_path_is_fileset(artifact_path)
+        is_fileset = check_if_path_is_fileset(self.neptune_run, artifact_path)
 
         if is_fileset:
             if dst_path:
