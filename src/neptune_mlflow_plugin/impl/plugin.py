@@ -69,6 +69,15 @@ class NeptuneTrackingStore(AbstractStore):
 
         self._login = get_login()
 
+    def _del_neptune_run_if_exists(self) -> None:
+        if not self._neptune_run:
+            # run either not created or already deleted
+            return
+
+        self._neptune_run.sync()
+        self._neptune_run.stop()
+        self._neptune_run = None
+
     def get_neptune_run(self, run_id: str) -> Run:
         if not self._neptune_run:
             self._current_run_id = run_id
@@ -149,8 +158,7 @@ class NeptuneTrackingStore(AbstractStore):
         if not self._neptune_run:
             return
 
-        self._neptune_run.sync()
-        self._neptune_run.stop()
+        self._del_neptune_run_if_exists()
 
     def create_run(self, experiment_id, user_id, start_time, tags, run_name):
         run = MlflowRun(
@@ -167,9 +175,8 @@ class NeptuneTrackingStore(AbstractStore):
             ),
             run_data=RunData(),
         )
-        if self._neptune_run:
-            self._neptune_run.sync()
-            self._neptune_run.stop()
+
+        self._del_neptune_run_if_exists()
 
         self._current_run_id = run.info.run_id
         self._neptune_run = Run(custom_run_id=run.info.run_id, **self._neptune_kwargs)
