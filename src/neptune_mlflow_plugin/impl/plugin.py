@@ -79,6 +79,9 @@ class NeptuneTrackingStore(AbstractStore):
         self._neptune_run = None
 
     def get_neptune_run(self, run_id: str) -> Run:
+        if self._neptune_run and self._current_run_id != run_id:
+            self._del_neptune_run_if_exists()
+
         if not self._neptune_run:
             self._current_run_id = run_id
             self._neptune_run = Run(custom_run_id=run_id, **self._neptune_kwargs)
