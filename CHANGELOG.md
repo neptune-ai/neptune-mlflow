@@ -1,5 +1,8 @@
 ## neptune-mlflow 1.0.0
 
+### Features
+- Created plugin to log mlflow metadata and artifacts to Neptune ([#42](https://github.com/neptune-ai/neptune-mlflow/pull/42))
+
 ### Changes
 - Updated MLflow exporter to work with the current neptune.ai API ([#40](https://github.com/neptune-ai/neptune-mlflow/pull/40))
 - Misc Fixes: ([#44](https://github.com/neptune-ai/neptune-mlflow/pull/44))

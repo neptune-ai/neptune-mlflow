@@ -1,7 +1,11 @@
+from unittest.mock import MagicMock
+
 try:
     from neptune import (
         Project,
+        Run,
         init_project,
+        init_run,
     )
 except ImportError:
     from neptune.new import init_project
@@ -58,3 +62,18 @@ def neptune_exporter(neptune_project) -> NeptuneExporter:
 def neptune_exporter_e2e() -> NeptuneExporter:
     project = init_project()
     yield NeptuneExporter(project, exclude_artifacts=False)
+
+
+@pytest.fixture(scope="session")
+def neptune_run() -> Run:
+    with init_run(mode="debug") as run:
+        yield run
+
+
+@pytest.fixture(scope="session")
+def mock_experiment() -> MagicMock():
+    mock_experiment = MagicMock()
+    mock_experiment.creation_time = "some_creation_time"
+    mock_experiment.last_update_time = "some_update_time"
+    mock_experiment.tags = {"tag1": "val1"}
+    return mock_experiment
