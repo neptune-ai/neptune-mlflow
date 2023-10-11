@@ -25,7 +25,7 @@ import click
 @click.option(
     "--exclude-artifacts",
     "-e",
-    help="Specifies whether to also include artifacts in the upload",
+    help="Specifies whether to exclude artifacts from the upload",
     required=False,
     default=False,
     type=bool,
