@@ -1,90 +1,61 @@
-# neptune-mlflow
+# Neptune + MLflow integration
 
-> **Note**
->
-> _This integration is still being updated for the main Neptune client library. It is currently only available for the Neptune legacy API._
+Neptune is a lightweight experiment tracker that offers a single place to track, compare, store, and collaborate on experiments and models. 
 
----
+This integration lets you enjoy tracking and reproducibility of MLflow with the organization and collaboration of Neptune. You can have your MLflow experiment runs hosted in a knowledge repo where you can invite and manage project contributors, while not having to change your MLflow logging code.
 
-![mlflow neptune.ai integration](docs/_static/mlflow_neptuneml.png)
+Should you wish to switch to Neptune, you can migrate your MLflow data to Neptune with the exporter tool.
 
-## Overview
+## What will you get with this integration?
 
-`neptune-mflow` integrates MLflow with Neptune to let you get the best of both worlds.
-Enjoy tracking and reproducibility of MLflow with the organization and collaboration of Neptune.
+- A **plugin** which you can use to send your MLflow-logged metadata to Neptune with the help of a tracking URI.
+- An **exporter** for migrating existing MLflow experiments to your Neptune project.
 
-With `neptune-mlflow` you can have your MLflow experiment runs hosted in a beautiful knowledge repo that lets you invite and manage project contributors.
+## Resources
 
-All you need to do is go to your MLflow project and run:
+* [Documentation](https://docs.neptune.ai/integrations/mlflow)
+* [Code examples on GitHub](https://github.com/neptune-ai/examples/blob/main/integrations-and-supported-tools/mlflow/scripts)
+* [Run logged in the Neptune app](https://app.neptune.ai/o/common/org/mlflow-integration/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MLFLOW-515&type=run)
+* [Run example in Google Colab](https://colab.research.google.com/github/neptune-ai/examples/blob/main/integrations-and-supported-tools/mlflow/notebooks/Neptune_Mlflow.ipynb)
 
-```
-neptune mlflow --project USER_NAME/PROJECT_NAME
-```
+## Example
 
-and you have your experiments organized and easily shareable with the world.
-
-## Documentation
-
-See [neptune-mlflow docs](https://docs-legacy.neptune.ai/integrations/mlflow.html) for more info.
-
-## Get started
-
-### Register
-
-Go to [neptune.ai](https://neptune.ai/?utm_source=github&utm_medium=repository&utm_campaign=integration-mlflow&utm_content=homepage) and sign up.
-
-It is completely free for individuals and non-organizations, and you can invite others to join your team!
-
-### Get your API token
-
-In the bottom-left corner, click your user menu and select **Get your API token**.
-
-### Set NEPTUNE_API_TOKEN environment variable
-
-Go to your console and run:
+On the command line:
 
 ```
-export NEPTUNE_API_TOKEN='your_long_api_token'
-```
-
-### Create your first project
-
-Click **All projects** &rarr; **New project**. Choose a name for it and whether you want it public or private.
-
-## Install lib
-
-```bash
 pip install neptune-mlflow
 ```
 
-## Sync your mlruns with Neptune
+Send your MLflow-logged metadata to Neptune (in Python):
 
-```bash
-neptune mlflow --project USER_NAME/PROJECT_NAME
+```python
+import mlflow
+from neptune_mlflow_plugin import create_neptune_tracking_uri
+
+# Create a Neptune tracking URI
+neptune_uri = create_neptune_tracking_uri(
+    api_token=ANONYMOUS_API_TOKEN,  # Set as environment variable or replace with your own token
+    project="common/mlflow-integration",  # Set as environment variable or replace with your own project
+    tags=["mlflow", "plugin"],  # (optional) use your own
+)
+
+mlflow.set_tracking_uri(neptune_uri)
+
+with mlflow.start_run():
+    ...
 ```
 
-## Explore and Share
+Export existing MLflow runs to Neptune:
 
-You can now explore and organize your experiments in Neptune, and share it with anyone:
+```
+neptune mlflow --project your-neptune-workspace/your-neptune-project
+```
 
-* by sending a link to your project, experiment or chart if it is public
-* or invite people to your project if you want to keep it private!
+## Support
 
-## Getting help
+If you got stuck or simply want to talk to us, here are your options:
 
-If you get stuck, don't worry. We are here to help.
-
-The best order of communication is:
-
- * [GitHub issues](https://github.com/neptune-ai/neptune-mlflow/issues)
- * [Email](mailto:support@neptune.ai)
-
-## Contributing
-
-If you see something that you don't like, you are more than welcome to contribute!
-
-There are many options:
-
-* Submit a feature request or a bug here, on Github
-* Submit a pull request that deals with an open feature request or bug
-* Spread the word about Neptune in your community
+* Check our [FAQ page](https://docs.neptune.ai/getting_help)
+* You can submit bug reports, feature requests, or contributions directly to the repository
+* Chat! When in the Neptune application click on the blue message icon in the bottom-right corner and send a message. A real person will talk to you ASAP (typically very ASAP)
+* You can just shoot us an email at support@neptune.ai
