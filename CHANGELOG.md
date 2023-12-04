@@ -4,7 +4,7 @@
 - Created plugin to log mlflow metadata and artifacts to Neptune ([#42](https://github.com/neptune-ai/neptune-mlflow/pull/42))
 
 ### Fixes
-- Fix handling `None` values while exporting `MlFlow` runs ([#48](https://github.com/neptune-ai/neptune-mlflow/pull/48))
+- Fix handling `None` values while exporting `Mlflow` runs ([#48](https://github.com/neptune-ai/neptune-mlflow/pull/48))
 
 
 ## neptune-mlflow 1.0.0
