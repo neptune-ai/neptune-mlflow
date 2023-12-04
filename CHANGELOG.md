@@ -6,6 +6,7 @@
 ### Fixes
 - Fix handling `None` values while exporting `MlFlow` runs ([#48](https://github.com/neptune-ai/neptune-mlflow/pull/48))
 
+
 ## neptune-mlflow 1.0.0
 
 ### Changes
