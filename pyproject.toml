@@ -66,6 +66,7 @@ keywords = [
 ]
 packages = [
     { include = "neptune_mlflow_exporter", from = "src" },
+    { include = "neptune_mlflow_plugin", from = "src" },
 ]
 
 [tool.poetry.urls]
