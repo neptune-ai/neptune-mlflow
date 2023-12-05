@@ -1,3 +1,8 @@
+## neptune-mlflow 1.1.1
+
+### Fixes
+- Added `neptune_mlflow_plugin` to `pyproject.toml` ([#50](https://github.com/neptune-ai/neptune-mlflow/pull/50))
+
 ## neptune-mlflow 1.1.0
 
 ### Features
